@@ -4,6 +4,8 @@
 
 No server. No API key. No data leaves your machine.
 
+**Gemini Nano is a small, efficient model optimised for on-device tasks** — translation, summarisation, image descriptions, and audio processing are solid use cases. It is not designed for knowledge work: factual questions, reasoning, or tasks that require up-to-date world knowledge are better served by a full-scale cloud model.
+
 ---
 
 ## What's inside
