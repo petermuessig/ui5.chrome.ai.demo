@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chrome AI × UI5</title>
+<style>
+  /* ─── Reset & base ─────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; font-family: "72", "72full", Arial, Helvetica, sans-serif; background: #070707; color: #fafafa; }
+
+  /* ─── UI5ers live brand palette ────────────────────── */
+  :root {
+    --u-orange:  #ff640a;
+    --u-light:   #ffa522;
+    --u-dark:    #070707;
+    --u-grad:    linear-gradient(90deg, #ff640a, #ffa522);
+    --chrome-blue:   #4285f4;
+    --chrome-green:  #34a853;
+    --chrome-yellow: #f9ab00;
+    --chrome-red:    #ea4335;
+    --text-muted: rgba(255,255,255,0.52);
+  }
+
+  /* ─── Slide deck container ─────────────────────────── */
+  .deck { width: 100%; height: 100%; position: relative; }
+  .slide {
+    display: none;
+    position: absolute; inset: 0;
+    padding: 52px 80px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    animation: fadein .3s ease;
+  }
+  .slide.active { display: flex; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* ─── Slide backgrounds ────────────────────────────── */
+  .slide-cover { background: linear-gradient(135deg, #180900 0%, #2a1200 55%, #0f0603 100%); }
+  .slide-plain  { background: #0a0602; }
+  .slide-api    { background: linear-gradient(160deg, #0a0602 0%, #110900 100%); }
+  .slide-std    { background: linear-gradient(160deg, #060a0a 0%, #060d12 100%); }
+  .slide-end    { background: linear-gradient(135deg, #140800 0%, #1e0d00 60%, #0a0602 100%); }
+
+  /* ─── Typography ───────────────────────────────────── */
+  .eyebrow { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--u-light); opacity: .8; margin-bottom: 14px; }
+  h1 { font-size: clamp(36px, 5vw, 64px); font-weight: 700; line-height: 1.1; margin-bottom: 20px; }
+  h2 { font-size: clamp(26px, 3.2vw, 46px); font-weight: 700; line-height: 1.15; margin-bottom: 16px; }
+  h3 { font-size: clamp(16px, 2vw, 24px); font-weight: 600; margin-bottom: 8px; }
+  p, li { font-size: clamp(14px, 1.5vw, 19px); line-height: 1.65; color: rgba(255,255,255,.83); }
+  li { margin-bottom: 9px; padding-left: 4px; }
+  ul { list-style: none; padding: 0; }
+  ul li::before { content: "→ "; color: var(--u-orange); font-weight: 700; }
+  strong { color: #fff; }
+
+  /* ─── Highlight spans ──────────────────────────────── */
+  .hl-orange { color: var(--u-orange); }
+  .hl-light  { color: var(--u-light); }
+  .hl-blue   { color: var(--chrome-blue); }
+  .hl-green  { color: var(--chrome-green); }
+  .hl-yellow { color: var(--chrome-yellow); }
+  .hl-red    { color: var(--chrome-red); }
+  .hl-grad   { background: var(--u-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+  /* ─── Card grid ─────────────────────────────────────── */
+  .card-grid { display: grid; gap: 18px; width: 100%; }
+  .card-grid-2 { grid-template-columns: 1fr 1fr; }
+  .card-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card-grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .card {
+    background: rgba(255,100,10,.06);
+    border: 1px solid rgba(255,100,10,.2);
+    border-radius: 14px;
+    padding: 22px 20px;
+    transition: border-color .2s;
+  }
+  .card:hover { border-color: rgba(255,165,34,.45); }
+  .card .icon { font-size: 28px; margin-bottom: 10px; }
+  .card h3 { font-size: 16px; }
+  .card p  { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .card .tag {
+    display: inline-block; margin-top: 10px;
+    font-size: 11px; letter-spacing: .07em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 20px;
+  }
+  .tag-green  { background: rgba(52,168,83,.15);  color: var(--chrome-green); }
+  .tag-blue   { background: rgba(66,133,244,.15);  color: var(--chrome-blue); }
+  .tag-orange { background: rgba(255,100,10,.15);  color: var(--u-light); }
+
+  /* ─── Code block ─────────────────────────────────────── */
+  .code-wrap { background: #0d0906; border: 1px solid rgba(255,100,10,.18); border-radius: 12px; padding: 20px 24px; width: 100%; overflow-x: auto; }
+  code { font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace; font-size: clamp(11px, 1.1vw, 14px); line-height: 1.8; color: #e6edf3; white-space: pre; display: block; }
+  .c-kw  { color: #ff7b72; }
+  .c-fn  { color: #ffa522; }
+  .c-str { color: #a5d6ff; }
+  .c-cm  { color: #8b949e; }
+  .c-num { color: #79c0ff; }
+
+  /* ─── Two-column layout ─────────────────────────────── */
+  .flex-row { display: flex; gap: 20px; align-items: flex-start; }
+  .flex-1 { flex: 1; }
+
+  /* ─── Browser support grid ─────────────────────────── */
+  .browser-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; width: 100%;
+  }
+  .browser-cell {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px; padding: 16px 14px; text-align: center;
+  }
+  .browser-cell .b-icon { font-size: 26px; margin-bottom: 6px; }
+  .browser-cell .b-name { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .browser-cell .b-status { font-size: 12px; }
+  .status-yes    { color: var(--chrome-green); }
+  .status-edge   { color: var(--chrome-blue); }
+  .status-review { color: var(--chrome-yellow); }
+  .status-no     { color: var(--text-muted); }
+
+  /* ─── Badge / pill ───────────────────────────────────── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; padding: 6px 14px; border-radius: 20px;
+    background: rgba(255,100,10,.12); border: 1px solid rgba(255,100,10,.28);
+    color: rgba(255,255,255,.82); margin: 4px 4px 4px 0;
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ─── Stat row ───────────────────────────────────────── */
+  .stat-row { display: flex; gap: 32px; flex-wrap: wrap; margin-top: 20px; }
+  .stat { text-align: center; }
+  .stat .val { font-size: clamp(28px, 4vw, 52px); font-weight: 700; line-height: 1; }
+  .stat .lbl { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+
+  /* ─── Divider ─────────────────────────────────────────── */
+  .divider { width: 56px; height: 4px; border-radius: 2px; margin: 18px 0; background: var(--u-grad); }
+
+  /* ─── Note ────────────────────────────────────────────── */
+  .note {
+    margin-top: 16px; padding: 11px 16px;
+    background: rgba(255,165,34,.1); border-left: 3px solid var(--u-light);
+    border-radius: 6px; font-size: 13px; color: rgba(255,255,255,.75);
+  }
+
+  /* ─── Layout helpers ──────────────────────────────────── */
+  .full-w { width: 100%; }
+  .mt-sm  { margin-top: 14px; }
+  .mt-md  { margin-top: 26px; }
+  .cover-sub { font-size: clamp(15px, 1.9vw, 21px); color: rgba(255,255,255,.68); margin-top: 8px; max-width: 700px; line-height: 1.6; }
+  .cover-logos { display: flex; gap: 12px; margin-top: 30px; flex-wrap: wrap; }
+
+  /* ─── Navigation ─────────────────────────────────────── */
+  .nav {
+    position: fixed; bottom: 26px; right: 34px;
+    display: flex; align-items: center; gap: 14px; z-index: 100;
+  }
+  .nav button {
+    background: rgba(255,100,10,.14); border: 1px solid rgba(255,100,10,.35);
+    color: #fff; border-radius: 50%; width: 42px; height: 42px; font-size: 18px;
+    cursor: pointer; transition: background .15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav button:hover { background: rgba(255,100,10,.3); }
+  .nav button:disabled { opacity: .28; cursor: default; }
+  .slide-counter { font-size: 13px; color: var(--text-muted); min-width: 44px; text-align: center; }
+
+  /* ─── Progress bar ─────────────────────────────────────── */
+  .progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: var(--u-grad);
+    transition: width .3s ease; z-index: 200;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+<div class="deck" id="deck">
+
+<!-- ═══ SLIDE 1 · Cover ═══════════════════════════════════════════════════ -->
+<div class="slide slide-cover active" id="s1">
+  <div class="eyebrow">Chrome Built-in AI × UI5</div>
+  <h1>
+    On-device AI<br>
+    <span class="hl-grad">in the Browser</span>
+  </h1>
+  <p class="cover-sub">
+    Language Detector · Translator · Summarizer · Prompt API<br>
+    — demoed live in a UI5 TypeScript application
+  </p>
+  <div class="cover-logos">
+    <span class="badge"><span class="dot" style="background:#4285f4"></span>Chrome 138+</span>
+    <span class="badge"><span class="dot" style="background:#34a853"></span>Gemini Nano</span>
+    <span class="badge"><span class="dot" style="background:#ff640a"></span>OpenUI5 1.153+</span>
+    <span class="badge"><span class="dot" style="background:#ffa522"></span>TypeScript</span>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2 · Why on-device? ══════════════════════════════════════════ -->
+<div class="slide slide-plain" id="s2">
+  <div class="eyebrow">Why on-device?</div>
+  <h2>Traditional cloud AI has friction</h2>
+  <div class="divider"></div>
+  <div class="card-grid card-grid-2 mt-sm">
+    <div class="card">
+      <div class="icon">🌐</div>
+      <h3>Network round-trip</h3>
+      <p>Every inference = HTTP call + latency + quota. Offline? Broken.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🔑</div>
+      <h3>API key required</h3>
+      <p>Keys must be managed, rotated, and kept off the client.</p>
+    </div>
+    <div class="card">
+      <div class="icon">💰</div>
+      <h3>Token cost</h3>
+      <p>Every request burns compute credits. High-volume use is expensive.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🔒</div>
+      <h3>Data privacy risk</h3>
+      <p>User data leaves the device. Regulatory compliance becomes complex.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3 · Chrome AI solves it ════════════════════════════════════ -->
+<div class="slide slide-plain" id="s3">
+  <div class="eyebrow">The answer</div>
+  <h2>Chrome built-in AI: the model ships with the browser</h2>
+  <div class="divider"></div>
+  <div class="stat-row">
+    <div class="stat"><div class="val hl-green">0 ms</div><div class="lbl">network latency</div></div>
+    <div class="stat"><div class="val hl-orange">$0</div><div class="lbl">API cost</div></div>
+    <div class="stat"><div class="val hl-light">100%</div><div class="lbl">offline capable</div></div>
+    <div class="stat"><div class="val hl-red">0</div><div class="lbl">bytes sent to server</div></div>
+  </div>
+  <ul class="mt-md">
+    <li>Gemini Nano runs entirely inside Chrome's sandbox — <strong>no data leaves the device</strong></li>
+    <li>Standard Web API — no SDK, no <code style="font-size:13px;color:#a5d6ff">npm install</code>, just <code style="font-size:13px;color:#a5d6ff">await Translator.create(…)</code></li>
+    <li>Already shipped in <strong>Chrome 138+</strong> (stable); all 4 APIs in general availability</li>
+  </ul>
+</div>
+
+<!-- ═══ SLIDE 4 · The four APIs ══════════════════════════════════════════ -->
+<div class="slide slide-api" id="s4">
+  <div class="eyebrow">Four APIs · Chrome 138+</div>
+  <h2>What can you do today?</h2>
+  <div class="divider"></div>
+  <div class="card-grid card-grid-4 mt-sm">
+    <div class="card">
+      <div class="icon">🔍</div>
+      <h3>Language Detector</h3>
+      <p>Detects the language of any string with confidence scores</p>
+      <span class="tag tag-green">Chrome 138</span>
+    </div>
+    <div class="card">
+      <div class="icon">🌐</div>
+      <h3>Translator</h3>
+      <p>Translates between 30+ language pairs, streaming supported</p>
+      <span class="tag tag-green">Chrome 138</span>
+    </div>
+    <div class="card">
+      <div class="icon">📄</div>
+      <h3>Summarizer</h3>
+      <p>Compresses text into TL;DR, key-points, teaser, or headline</p>
+      <span class="tag tag-green">Chrome 138</span>
+    </div>
+    <div class="card">
+      <div class="icon">💬</div>
+      <h3>Prompt API</h3>
+      <p>Conversational Gemini Nano — text + <strong>image</strong> multimodal input</p>
+      <span class="tag tag-blue">Chrome 148</span>
+    </div>
+  </div>
+  <div class="note">All APIs require a secure context (HTTPS or localhost). First use downloads a model package (~few hundred MB, cached in Chrome).</div>
+</div>
+
+<!-- ═══ SLIDE 5 · Language Detector ══════════════════════════════════════ -->
+<div class="slide slide-api" id="s5">
+  <div class="eyebrow">API 1 of 4</div>
+  <h2><span class="hl-green">Language Detector</span></h2>
+  <div class="divider"></div>
+  <div class="flex-row full-w mt-sm">
+    <div class="flex-1">
+      <ul>
+        <li>Identify the language of any text string</li>
+        <li>Returns ranked array of <code style="font-size:13px;color:#a5d6ff">{detectedLanguage, confidence}</code></li>
+        <li>BCP-47 codes — e.g. <code style="font-size:13px;color:#a5d6ff">"fr"</code>, <code style="font-size:13px;color:#a5d6ff">"zh-Hant"</code></li>
+        <li>Used here: Auto-detect source language in Translate view</li>
+      </ul>
+    </div>
+    <div class="code-wrap flex-1">
+      <code><span class="c-kw">const</span> detector = <span class="c-kw">await</span> <span class="c-fn">LanguageDetector</span>.<span class="c-fn">create</span>();
+<span class="c-kw">const</span> results = <span class="c-kw">await</span> detector.<span class="c-fn">detect</span>(<span class="c-str">"Bonjour!"</span>);
+<span class="c-cm">// [{detectedLanguage:"fr",confidence:0.98},…]</span></code>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 · Translator ═════════════════════════════════════════════ -->
+<div class="slide slide-api" id="s6">
+  <div class="eyebrow">API 2 of 4</div>
+  <h2><span class="hl-blue">Translator</span></h2>
+  <div class="divider"></div>
+  <div class="flex-row full-w mt-sm">
+    <div class="flex-1">
+      <ul>
+        <li>30+ language pairs supported</li>
+        <li>Synchronous or streaming translation</li>
+        <li>Session-based — create once, reuse for many translations</li>
+        <li>Monitor callback for model download progress</li>
+        <li>Used here: Google-Translate-style UI with language swap</li>
+      </ul>
+    </div>
+    <div class="code-wrap flex-1">
+      <code><span class="c-kw">const</span> t = <span class="c-kw">await</span> <span class="c-fn">Translator</span>.<span class="c-fn">create</span>({
+  sourceLanguage: <span class="c-str">"fr"</span>,
+  targetLanguage: <span class="c-str">"en"</span>
+});
+<span class="c-kw">const</span> out = <span class="c-kw">await</span> t.<span class="c-fn">translate</span>(<span class="c-str">"Bonjour!"</span>);
+<span class="c-cm">// "Hello!"</span></code>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 · Summarizer ═════════════════════════════════════════════ -->
+<div class="slide slide-api" id="s7">
+  <div class="eyebrow">API 3 of 4</div>
+  <h2><span class="hl-yellow">Summarizer</span></h2>
+  <div class="divider"></div>
+  <div class="flex-row full-w mt-sm">
+    <div class="flex-1">
+      <ul>
+        <li><strong>type:</strong> <code style="font-size:12px;color:#a5d6ff">key-points</code> · <code style="font-size:12px;color:#a5d6ff">tldr</code> · <code style="font-size:12px;color:#a5d6ff">teaser</code> · <code style="font-size:12px;color:#a5d6ff">headline</code></li>
+        <li><strong>format:</strong> <code style="font-size:12px;color:#a5d6ff">plain-text</code> or <code style="font-size:12px;color:#a5d6ff">markdown</code></li>
+        <li><strong>length:</strong> <code style="font-size:12px;color:#a5d6ff">short</code> · <code style="font-size:12px;color:#a5d6ff">medium</code> · <code style="font-size:12px;color:#a5d6ff">long</code></li>
+        <li>Optional context hint orients the model</li>
+        <li>Streaming via <code style="font-size:12px;color:#a5d6ff">summarizeStreaming()</code> — live output</li>
+      </ul>
+    </div>
+    <div class="code-wrap flex-1">
+      <code><span class="c-kw">const</span> s = <span class="c-kw">await</span> <span class="c-fn">Summarizer</span>.<span class="c-fn">create</span>({
+  type: <span class="c-str">"key-points"</span>,
+  format: <span class="c-str">"plain-text"</span>,
+  length: <span class="c-str">"medium"</span>
+});
+<span class="c-kw">for await</span> (<span class="c-kw">const</span> chunk <span class="c-kw">of</span>
+    s.<span class="c-fn">summarizeStreaming</span>(text)) {
+  display(chunk); <span class="c-cm">// streaming delta</span>
+}</code>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 · Prompt API ═════════════════════════════════════════════ -->
+<div class="slide slide-api" id="s8">
+  <div class="eyebrow">API 4 of 4</div>
+  <h2><span class="hl-light">Prompt API</span> (LanguageModel)</h2>
+  <div class="divider"></div>
+  <div class="flex-row full-w mt-sm">
+    <div class="flex-1">
+      <ul>
+        <li>Full conversational access to <strong>Gemini Nano</strong></li>
+        <li>System prompt via <code style="font-size:12px;color:#a5d6ff">initialPrompts</code></li>
+        <li><strong>Multimodal</strong>: text + image input</li>
+        <li>Streaming via <code style="font-size:12px;color:#a5d6ff">promptStreaming()</code></li>
+        <li>Temperature / top-K sampling controls</li>
+      </ul>
+    </div>
+    <div class="code-wrap flex-1">
+      <code><span class="c-kw">const</span> session = <span class="c-kw">await</span> <span class="c-fn">LanguageModel</span>.<span class="c-fn">create</span>({
+  expectedInputs: [
+    {type: <span class="c-str">"text"</span>}, {type: <span class="c-str">"image"</span>}
+  ],
+  temperature: <span class="c-num">0.8</span>
+});
+<span class="c-kw">for await</span> (<span class="c-kw">const</span> chunk <span class="c-kw">of</span>
+    session.<span class="c-fn">promptStreaming</span>(input)) {
+  display(chunk);
+}</code>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 · W3C Standardization ═══════════════════════════════════ -->
+<div class="slide slide-std" id="s9">
+  <div class="eyebrow">Standardization</div>
+  <h2>W3C Web ML Community Group + browser roadmap</h2>
+  <div class="divider"></div>
+  <div class="flex-row full-w mt-sm" style="gap:28px;align-items:flex-start">
+    <div class="flex-1">
+      <ul>
+        <li>All four APIs are proposals in the <strong>W3C Web Machine Learning Community Group</strong></li>
+        <li>Reviewed by <strong>W3C TAG</strong> (Technical Architecture Group)</li>
+        <li>Specs at <code style="font-size:12px;color:#a5d6ff">webmachinelearning.github.io</code></li>
+        <li>Translation/Detection: <strong>WICG/translation-api</strong></li>
+        <li>Summarizer/Writer: <strong>writing-assistance-apis</strong></li>
+        <li>Prompt: <strong>explainers-by-googlers/prompt-api</strong></li>
+        <li>Early-stage proposals — not yet ratified standards</li>
+      </ul>
+    </div>
+    <div class="flex-1">
+      <div class="browser-grid">
+        <div class="browser-cell">
+          <div class="b-icon">🟡</div>
+          <div class="b-name">Chrome</div>
+          <div class="b-status status-yes">✓ Shipped<br>138+ / 148+</div>
+        </div>
+        <div class="browser-cell">
+          <div class="b-icon">🔵</div>
+          <div class="b-name">Edge</div>
+          <div class="b-status status-edge">⚡ Prompt API<br>experimental</div>
+        </div>
+        <div class="browser-cell">
+          <div class="b-icon">🦊</div>
+          <div class="b-name">Firefox</div>
+          <div class="b-status status-review">🔍 Standards<br>position open</div>
+        </div>
+        <div class="browser-cell">
+          <div class="b-icon">🧭</div>
+          <div class="b-name">Safari</div>
+          <div class="b-status status-review">🔍 Standards<br>position open</div>
+        </div>
+      </div>
+      <div class="note" style="margin-top:12px">Open standards mean other vendors <strong>can</strong> ship compatible implementations — the process is underway.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 10 · Closing ════════════════════════════════════════════════ -->
+<div class="slide slide-end" id="s10">
+  <div class="eyebrow">Try it yourself</div>
+  <h2>Run the demo</h2>
+  <div class="divider"></div>
+  <div class="card-grid card-grid-2 mt-sm">
+    <div class="card">
+      <div class="icon">🚀</div>
+      <h3>Quick start</h3>
+      <div class="code-wrap" style="margin-top:10px">
+        <code><span class="c-cm"># Clone &amp; install</span>
+npm install
+
+<span class="c-cm"># Start dev server</span>
+npm start
+
+<span class="c-cm"># Type-check</span>
+npm run ts-typecheck</code>
+      </div>
+    </div>
+    <div class="card">
+      <div class="icon">📋</div>
+      <h3>Prerequisites</h3>
+      <ul style="margin-top:10px">
+        <li>Chrome 148+ (web Prompt API)</li>
+        <li>Flags enabled at <code style="font-size:12px;color:#a5d6ff">chrome://flags</code></li>
+        <li>Gemini Nano via <code style="font-size:12px;color:#a5d6ff">chrome://components</code></li>
+        <li>See <code style="font-size:12px;color:#a5d6ff">README.md</code> for full setup</li>
+      </ul>
+    </div>
+  </div>
+  <div class="stat-row mt-md">
+    <div class="stat"><div class="val hl-green">4</div><div class="lbl">Chrome AI APIs</div></div>
+    <div class="stat"><div class="val hl-light">3</div><div class="lbl">demo views</div></div>
+    <div class="stat"><div class="val hl-blue">0</div><div class="lbl">server calls</div></div>
+    <div class="stat"><div class="val hl-orange">0</div><div class="lbl">API keys needed</div></div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<nav class="nav" aria-label="Slide navigation">
+  <button id="prevBtn" onclick="go(-1)" aria-label="Previous slide" disabled>‹</button>
+  <span class="slide-counter" id="counter">1 / 10</span>
+  <button id="nextBtn" onclick="go(1)" aria-label="Next slide">›</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let cur = 0;
+
+  function show(n) {
+    slides[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(n, total - 1));
+    slides[cur].classList.add('active');
+    document.getElementById('counter').textContent = (cur + 1) + ' / ' + total;
+    document.getElementById('prevBtn').disabled = cur === 0;
+    document.getElementById('nextBtn').disabled = cur === total - 1;
+    document.getElementById('progress').style.width = ((cur + 1) / total * 100) + '%';
+  }
+
+  function go(dir) { show(cur + dir); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'   || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End')  show(total - 1);
+  });
+
+  let tx = 0;
+  document.addEventListener('touchstart', (e) => { tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend',   (e) => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+  });
+
+  show(0);
+</script>
+</body>
+</html>

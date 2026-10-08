@@ -1,0 +1,42 @@
+/* ── Chat scroll area: fill the flex-item wrapper that grows to fill
+   the remaining page height. UI5 sets height:auto inline; override it. */
+.chatScrollFill {
+	height: 100% !important;
+}
+
+/* ── Force the FlexBox column to be constrained to the page content height.
+   Without this the FlexBox grows to content and the ScrollContainer never clips. */
+.chatFlexColumn {
+	height: 100%;
+	overflow: hidden;
+}
+
+/* ── The FlexItemData wrapper div around the ScrollContainer gets min-height:auto
+   from UI5 which prevents flex shrink. Override so it can shrink below content size. */
+.chatFlexColumn > .sapMFlexItem {
+	min-height: 0 !important;
+}
+
+/* ── The Page content section (sapMPage) uses overflow:auto which lets it grow
+   with content. Lock it to hidden so height:100% on children is bounded. */
+.sapMPageScrollDisabled .sapMPageScrollableContent {
+	overflow: hidden !important;
+}
+
+/* ── Attachment chip ─────────────────────────────────────────────────────────── */
+.attachmentChip {
+	gap: 8px;
+}
+
+.attachmentThumb {
+	border-radius: 4px;
+	object-fit: cover;
+	border: 1px solid var(--sapField_BorderColor);
+}
+
+.attachmentLabel {
+	max-width: 200px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}

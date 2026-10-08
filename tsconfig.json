@@ -9,7 +9,9 @@
 		"strictNullChecks": false,
 		"strictPropertyInitialization": false,
 		"rootDir": "./webapp",
-		"types": ["@openui5/types", "@types/qunit"],
+		"jsx": "react-jsx",
+		"jsxImportSource": "ui5/community/jsx/runtime",
+		"types": ["@openui5/types", "@types/qunit", "@ui5-community/jsx-runtime", "@types/dom-chromium-ai"],
 		"paths": {
 			"ui5/chrome/ai/demo/*": ["./webapp/*"],
 			"unit/*": ["./webapp/test/unit/*"],

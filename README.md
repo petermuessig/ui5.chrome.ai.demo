@@ -1,120 +1,217 @@
-# UI5 Application ui5.chrome.ai.demo
+# Chrome Built-in AI Demo — UI5 TypeScript
 
-Insert the purpose of this project and some interesting info here...
+> Four Chrome built-in AI APIs — Language Detector · Translator · Summarizer · Prompt (Gemini Nano) — running **entirely on-device** inside a UI5 TypeScript application.
 
-## Description
+No server. No API key. No data leaves your machine.
 
-This app demonstrates a TypeScript setup for developing UI5 applications. The central entry point for all information about using TypeScript with UI5 is at [https://sap.github.io/ui5-typescript](https://sap.github.io/ui5-typescript).
+---
 
-**The template is inspired by the [`SAP-samples/ui5-typescript-helloworld`](https://github.com/SAP-samples/ui5-typescript-helloworld) project which also contains [a detailed step-by-step guide](https://github.com/SAP-samples/ui5-typescript-helloworld/blob/main/step-by-step.md). It explains how this setup is created and how all the bits and pieces fit together.**
+## What's inside
 
-## Requirements
+| Demo screen | API(s) used | What it shows |
+|---|---|---|
+| **Translate** | Language Detector + Translator | Google-translate-style UI with auto language detection, 30+ language pairs, and a swap button |
+| **Summarize** | Summarizer | Paste long text, pick output type/format/length, get a live-streamed summary |
+| **Prompt** | LanguageModel (Gemini Nano) | Chat interface with streaming replies, image drop/paste/camera, voice input, and a settings dialog |
 
-Either [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/) for dependency management.
+The **Home** screen shows all three tiles; a **Help** screen explains the Chrome setup steps.
 
-## Preparation
+---
 
-Use `npm` (or `yarn`) to install the dependencies:
+## Prerequisites
 
-```sh
+### Chrome version
+
+| API | Minimum Chrome version |
+|---|---|
+| Language Detector | Chrome 138 |
+| Translator | Chrome 138 |
+| Summarizer | Chrome 138 |
+| Prompt / LanguageModel | Chrome 148 (web pages) |
+
+### Enable the on-device model
+
+1. Open `chrome://flags/` and enable all four flags:
+   - `#prompt-api-for-gemini-nano` → **Enabled**
+   - `#translation-api` → **Enabled**
+   - `#language-detection-api` → **Enabled**
+   - `#summarization-api` → **Enabled**
+2. Relaunch Chrome.
+3. Open `chrome://components/`, find **"Optimization Guide On Device Model"**, click **Check for update** and wait for "Component updated" or "Up to date". This pre-downloads Gemini Nano so the first demo run is instant.
+
+> **First-run note:** if the model has not been pre-downloaded, the app shows a progress bar during the initial API call. Subsequent calls use the cached model.
+
+---
+
+## Getting started
+
+```bash
+# Install dependencies
 npm install
-```
 
-(To use yarn, just do `yarn` instead.)
-
-## Run the App
-
-Execute the following command to run the app locally for development in watch mode (the browser reloads the app automatically when there are changes in the source code):
-
-```sh
+# Start the dev server (http://localhost:8080)
 npm start
-```
 
-As shown in the terminal after executing this command, the app is then running on http://localhost:8080/index.html. A browser window with this URL should automatically open.
+# Type-check only (no emit)
+npm run ts-typecheck
 
-(When using yarn, do `yarn start` instead. Also for all commands below, you can just replace `npm` by `yarn` in this case.)
-
-## Debug the App
-
-In the browser, you can directly debug the original TypeScript code, which is supplied via sourcemaps (need to be enabled in the browser's developer console if it does not work straight away). If the browser doesn't automatically jump to the TypeScript code when setting breakpoints, use e.g. `Ctrl`/`Cmd` + `P` in Chrome to open the `*.ts` file you want to debug.
-
-## Build the App
-
-### Unoptimized (but quick)
-
-Execute the following command to build the project and get an app that can be deployed:
-
-```sh
+# Production build → ./dist/
 npm run build
 ```
 
-The result is placed into the `dist` folder. To start the generated package, just run
+Open `docs/slides.html` directly in your browser for the presentation deck (no build step needed).
 
-```sh
-npm run start:dist
+---
+
+## Project structure
+
+```
+webapp/
+├── Component.ts              # UI5 app entry point (IAsyncContentCreation)
+├── manifest.json             # App descriptor: routing, i18n, libs
+├── index.html                # Local dev entry (UI5 tooling)
+├── index-cdn.html            # CDN entry (no build step)
+├── view/
+│   ├── App.view.xml          # Root shell (hosts the router <App> target)
+│   ├── Home.view.tsx         # Launchpad — tiles for each demo
+│   ├── Translate.view.tsx    # Language Detector + Translator demo
+│   ├── Summarize.view.tsx    # Summarizer demo
+│   ├── Prompt.view.tsx       # LanguageModel (Gemini Nano) chat demo
+│   └── Help.view.tsx         # Chrome setup instructions
+├── controller/
+│   ├── BaseController.ts     # Shared helpers (navTo, getRouter, …)
+│   ├── App.controller.ts     # Root view controller
+│   ├── Home.controller.ts    # Launchpad navigation
+│   ├── Translate.controller.ts   # Language Detector + Translator logic
+│   ├── Summarize.controller.ts   # Summarizer logic
+│   ├── Prompt.controller.ts      # LanguageModel logic, image + voice
+│   └── Help.controller.ts        # Help / setup page
+├── model/
+│   ├── ai.ts                 # Chrome AI helpers (availability, monitor, language list)
+│   ├── formatter.ts
+│   └── models.ts
+├── css/
+│   └── app.css               # Custom styles (chat layout, attachment chips, …)
+└── i18n/
+    ├── i18n.properties       # English (default)
+    ├── i18n_en.properties
+    └── i18n_de.properties    # German
+docs/
+├── slides.html               # Self-contained slide deck (UI5ers live colour scheme)
+└── DEMO_SCRIPT.md            # 15-minute live demo walkthrough
 ```
 
-Note that `index.html` still loads the UI5 framework from the relative URL `resources/...`, which does not physically exist, but is only provided dynamically by the UI5 CLI. So for an actual deployment you should change this URL to either [the CDN](https://sdk.openui5.org/#/topic/2d3eb2f322ea4a82983c1c62a33ec4ae) or your local deployment of UI5.
+### Routes
 
-(When using yarn, do `yarn build` and `yarn start:dist` instead.)
+| Hash | Route | View |
+|---|---|---|
+| (empty) | `home` | `Home.view.tsx` |
+| `#translate` | `translate` | `Translate.view.tsx` |
+| `#summarize` | `summarize` | `Summarize.view.tsx` |
+| `#prompt` | `prompt` | `Prompt.view.tsx` |
+| `#help` | `help` | `Help.view.tsx` |
 
-### Optimized
+TSX views are referenced in routing targets with the `module:` prefix:
+`"name": "module:ui5/chrome/ai/demo/view/Translate.view"`.
 
-For an optimized self-contained build (takes longer because the UI5 resources are built, too), do:
+---
 
-```sh
-npm run build:opt
+## How TSX views are enabled
+
+This project uses the [ui5-community JSX runtime](https://github.com/ui5-community/ui5-ecosystem-showcase/tree/main/packages/jsx-runtime). Three configuration layers must use the same runtime identifier.
+
+### `ui5.yaml` — transpiler
+
+```yaml
+customConfiguration:
+  config-ui5-tooling-transpile: &cfgTranspile
+    transformJSX:
+      runtime: automatic
+      importSource: "ui5/community/jsx/runtime"
 ```
 
-To start the generated package, again just run:
+### `tsconfig.json` — TypeScript
 
-```sh
-npm run start:dist
+```json
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "ui5/community/jsx/runtime",
+    "types": [
+      "@openui5/types",
+      "@ui5-community/jsx-runtime",
+      "@types/dom-chromium-ai"
+    ]
+  }
+}
 ```
 
-In this case, all UI5 framework resources are also available within the `dist` folder, so the folder can be deployed as-is to any static web server, without changing the bootstrap URL.
+### `package.json` — runtime package
 
-With the self-contained build, the bootstrap URL in `index.html` has already been modified to load the newly created `sap-ui-custom.js` for bootstrapping, which contains all app resources as well as all needed UI5 JavaScript resources. Most UI5 resources inside the `dist` folder are for this reason actually **not** needed to run the app. Only the non-JS-files, like translation texts and CSS files, are used and must also be deployed. (Only when for some reason JS files are missing from the optimized self-contained bundle, they are also loaded separately.)
-
-(When using yarn, do `yarn build:opt` and `yarn start:dist` instead.)
-
-## Test the App
-
-### Run the Tests
-
-To run all tests, do:
-
-```sh
-npm test
+```json
+{
+  "dependencies": {
+    "@ui5-community/jsx-runtime": "^0.1.5"
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-react-jsx": "^7.29.7",
+    "@types/dom-chromium-ai": "^0.0.10"
+  }
+}
 ```
 
-This includes linting and running the unit and integration tests. After the tests have completed, the task ends, so this can be used for automated tests in a continuous integration scenario.
+> **Note:** the three strings `"ui5/community/jsx/runtime"` must be identical across all three files.
 
-### Run Specific Tests Manually
+### TSX view rules
 
-You can manually open test pages by running `npm start` and then opening one of the following URLs in your browser:
+- JSX tags are **UI5 control classes only** — there are no HTML elements (`<div>`, `<span>`, …). Use `sap/m/FlexBox`, `sap/m/Image`, etc. for layout.
+- UI5 controls do not support a `style` prop — use `class` and CSS instead.
+- Use `control.attachBrowserEvent("keydown", handler)` / `detachBrowserEvent` for native DOM events — not `getDomRef().addEventListener`.
 
-- Unit tests: http://localhost:8080/test/Test.qunit.html?testsuite=test-resources/com/myorg/myapp/testsuite.qunit&test=unit/unitTests
-- Integration tests: http://localhost:8080/test/Test.qunit.html?testsuite=test-resources%2Fcom%2Fmyorg%2Fmyapp%2Ftestsuite.qunit&test=integration%2FopaTests
-- Both kinds of tests: http://localhost:8080/test-resources/sap/ui/qunit/testrunner.html?testpage=%2Ftest%2Ftestsuite.qunit.html&autostart=true
-  
+---
 
-### Check the Code
+## How each demo works
 
-Do the following to run a TypeScript check:
+### Translate
 
-```sh
-npm run ts-typecheck
-```
+1. Paste text into the left text area. Source language defaults to **Auto-Detect** — `LanguageDetector.detect()` runs on a 600 ms debounce and shows the detected language + confidence.
+2. Pick a target language.
+3. Click **Translate** — a `Translator` session is created with `{ sourceLanguage, targetLanguage }` and cached for the current language pair.
+4. **Swap** exchanges source ↔ target text and languages (disabled when source is Auto-Detect).
+5. The gear icon opens **Settings** to change the language pair.
 
-This checks the application code for any type errors (but will also complain in case of fundamental syntax issues which break the parsing).
+### Summarize
 
-To lint the TypeScript code, do:
+1. Paste a long text into the input area.
+2. Open **Settings** to choose *type* (`key-points` · `tldr` · `teaser` · `headline`), *format* (`plain-text` · `markdown`), *length* (`short` · `medium` · `long`), and an optional *context hint*.
+3. Click **Summarize** — `Summarizer.create({…})` is called and `summarizeStreaming()` streams the result live. Changing settings destroys the current session so the next call picks up the new options.
 
-```sh
-npm run lint
-```
+### Prompt
+
+1. Type a message and press **Send** (or Cmd+Enter / Ctrl+Enter). A `LanguageModel` session is created on the first send using your Settings (system prompt, temperature, top-K from `LanguageModel.params()`). Responses stream in via `promptStreaming()`.
+2. **Image input:** drag-and-drop or paste an image (or use the **camera** button) onto the composer. A thumbnail appears; the session is recreated with `expectedInputs: [{type:'image'}]`. The image is sent as `{type:'image', value: blob}` alongside your text.
+3. **Voice input:** click the microphone to start dictation (Web Speech API — separate from Chrome AI). The transcript appends to the composer.
+4. **Clear chat** destroys the session and clears the transcript.
+5. **Settings** — system prompt, temperature, and top-K sliders. Saving recreates the session.
+
+---
+
+## Caveats
+
+- Chrome built-in AI APIs are **experimental**. The API surface may change between Chrome versions. Check [developer.chrome.com/docs/ai/built-in-apis](https://developer.chrome.com/docs/ai/built-in-apis) for the latest.
+- The **Prompt API** requires Chrome 148+ for web pages (Chrome 138+ for extensions).
+- The **Gemini Nano model download** can be several hundred MB. Pre-download it via `chrome://components/` before running the demo.
+- **Voice input** uses `webkitSpeechRecognition` (Web Speech API), not a Chrome AI API. It requires HTTPS or localhost.
+- All APIs require a **secure context** (HTTPS or localhost). The dev server (`npm start`) serves over localhost, so all features work.
+
+---
+
+## Standardization
+
+All four APIs are proposals in the [W3C Web Machine Learning Community Group](https://webmachinelearning.github.io/). They are under W3C TAG review. Firefox and WebKit have open standards-position reviews. Chrome is the only browser with general-availability implementations today (Edge has experimental Prompt API support).
+
+---
 
 ## License
 
-This project is licensed under the Apache Software License, version 2.0 except as noted otherwise in the [LICENSE](LICENSE) file.
+Apache 2.0 — see [LICENSE](LICENSE).

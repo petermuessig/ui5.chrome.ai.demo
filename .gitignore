@@ -3,6 +3,7 @@ dist
 coverage
 report
 .nyc_output
+.playwright-mcp
 
 # Logs
 logs

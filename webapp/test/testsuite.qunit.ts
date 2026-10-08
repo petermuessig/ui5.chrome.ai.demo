@@ -24,11 +24,5 @@ export default {
 		}
 	},
 	tests: {
-		"unit/unitTests": {
-			title: "Unit tests for ui5.chrome.ai.demo"
-		},
-		"integration/opaTests": {
-			title: "Integration tests for ui5.chrome.ai.demo"
-		}
 	}
 } satisfies SuiteConfiguration;
