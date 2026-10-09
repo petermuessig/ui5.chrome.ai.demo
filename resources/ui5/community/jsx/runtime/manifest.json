@@ -1,0 +1,39 @@
+{
+  "_version": "1.21.0",
+  "sap.app": {
+    "id": "ui5.community.jsx.runtime",
+    "type": "library",
+    "embeds": [],
+    "applicationVersion": {
+      "version": "0.1.5"
+    },
+    "title": "A plugin-based JSX runtime for UI5, write UI5 views as TSX with per-control TypeScript typing.",
+    "description": "A plugin-based JSX runtime for UI5, write UI5 views as TSX with per-control TypeScript typing.",
+    "resources": "resources.json",
+    "offline": true
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "supportedThemes": []
+  },
+  "sap.ui5": {
+    "dependencies": {
+      "minUI5Version": "1.148",
+      "libs": {
+        "sap.ui.core": {
+          "minVersion": "1.148.2"
+        }
+      }
+    },
+    "library": {
+      "i18n": false,
+      "css": false,
+      "content": {
+        "controls": [],
+        "elements": [],
+        "types": [],
+        "interfaces": []
+      }
+    }
+  }
+}

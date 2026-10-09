@@ -1,0 +1,2 @@
+sap.ui.define(["./BaseController"],function(n){"use strict";function o(n){return n&&n.__esModule&&typeof n.default!=="undefined"?n.default:n}const t=o(n);const e=t.extend("ui5.chrome.ai.demo.controller.HomeController",{onInit:function n(){},onNavToTranslate:function n(){this.navTo("translate")},onNavToSummarize:function n(){this.navTo("summarize")},onNavToPrompt:function n(){this.navTo("prompt")}});return e});
+//# sourceMappingURL=Home.controller.js.map

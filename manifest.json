@@ -1,0 +1,117 @@
+{
+	"_version": "1.21.0",
+	"sap.app": {
+		"id": "ui5.chrome.ai.demo",
+		"type": "application",
+		"i18n": {
+			"bundleUrl": "i18n/i18n.properties",
+			"supportedLocales": [
+				"",
+				"de",
+				"en"
+			]
+		},
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"applicationVersion": {
+			"version": "1.0.0"
+		},
+		"sourceTemplate": {
+			"id": "generator-ui5-ts-app",
+			"version": "1.1.0"
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		}
+	},
+	"sap.ui5": {
+		"rootView": {
+			"viewName": "ui5.chrome.ai.demo.view.App",
+			"type": "XML",
+			"id": "app"
+		},
+		"dependencies": {
+			"minUI5Version": "1.153.0",
+			"libs": {
+				"sap.ui.core": {},
+				"sap.m": {}
+			}
+		},
+		"handleValidation": true,
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "ui5.chrome.ai.demo.i18n.i18n",
+					"supportedLocales": [
+						"en",
+						"de"
+					],
+					"fallbackLocale": "en",
+					"async": true
+				}
+			}
+		},
+		"routing": {
+			"config": {
+				"routerClass": "sap.m.routing.Router",
+				"type": "View",
+				"viewType": "XML",
+				"path": "ui5.chrome.ai.demo.view",
+				"controlId": "app",
+				"controlAggregation": "pages"
+			},
+			"routes": [
+				{
+					"pattern": "",
+					"name": "home",
+					"target": "home"
+				},
+				{
+					"pattern": "translate",
+					"name": "translate",
+					"target": "translate"
+				},
+				{
+					"pattern": "summarize",
+					"name": "summarize",
+					"target": "summarize"
+				},
+				{
+					"pattern": "prompt",
+					"name": "prompt",
+					"target": "prompt"
+				}
+			],
+			"targets": {
+				"home": {
+					"id": "home",
+					"name": "module:ui5/chrome/ai/demo/view/Home.view"
+				},
+				"translate": {
+					"id": "translate",
+					"name": "module:ui5/chrome/ai/demo/view/Translate.view"
+				},
+				"summarize": {
+					"id": "summarize",
+					"name": "module:ui5/chrome/ai/demo/view/Summarize.view"
+				},
+				"prompt": {
+					"id": "prompt",
+					"name": "module:ui5/chrome/ai/demo/view/Prompt.view"
+				}
+			}
+		},
+		"flexBundle": false
+	}
+}
