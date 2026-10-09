@@ -1,4 +1,4 @@
-sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/MessageBox", "sap/m/Dialog", "sap/m/Button", "sap/m/VBox", "sap/m/Label", "sap/m/TextArea", "sap/m/Slider", "../model/ai"], function (__BaseController, JSONModel, MessageBox, Dialog, Button, VBox, Label, TextArea, Slider, ___model_ai) {
+sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/MessageBox", "sap/m/MessageToast", "sap/m/Dialog", "sap/m/Button", "sap/m/VBox", "sap/m/Label", "sap/m/TextArea", "sap/m/Slider", "sap/ui/core/HTML", "../model/ai"], function (__BaseController, JSONModel, MessageBox, MessageToast, Dialog, Button, VBox, Label, TextArea, Slider, HTML, ___model_ai) {
   "use strict";
 
   function _interopRequireDefault(obj) {
@@ -7,10 +7,31 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
   const BaseController = _interopRequireDefault(__BaseController);
   const checkLanguageModelAvailability = ___model_ai["checkLanguageModelAvailability"];
   const makeMonitor = ___model_ai["makeMonitor"];
+  const USAGE_CODE = `// Chrome Built-in AI — Prompt API (LanguageModel / Gemini Nano)
+
+// 1. Create a session (model downloads on first use)
+const session = await LanguageModel.create({
+  systemPrompt: "You are a helpful assistant.",
+  temperature: 1.0,
+  topK: 3
+});
+
+// 2. Stream the response — runs entirely on-device
+const stream = session.promptStreaming("Tell me a joke");
+let response = "";
+for await (const chunk of stream) {
+  response += chunk; // each chunk is a delta
+  display(response);
+}
+
+// 3. Multi-turn: the session maintains conversation history
+const followUp = await session.prompt("Explain it to a 5-year-old");
+`;
+
   /**
-   * @namespace ui5.chrome.ai.demo.controller
+   * @alias ui5.chrome.ai.demo.controller.Prompt
    */
-  const PromptController = BaseController.extend("ui5.chrome.ai.demo.controller.PromptController", {
+  const PromptController = BaseController.extend("ui5.chrome.ai.demo.controller.Prompt", {
     constructor: function constructor() {
       BaseController.prototype.constructor.apply(this, arguments);
       this._session = null;
@@ -19,10 +40,14 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
       this._recognition = null;
       this._dropHandler = null;
       this._pasteHandler = null;
+      this._keydownHandler = null;
+      this._fileInput = null;
+      this._cameraStream = null;
       this._state = {
         messages: [],
         inputText: "",
         pendingImageSrc: "",
+        pendingImageName: "",
         busy: false,
         unavailable: false,
         unavailableText: "",
@@ -30,6 +55,8 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
         downloadingText: "",
         downloadProgress: 0,
         listening: false,
+        showCode: false,
+        code: USAGE_CODE,
         systemPrompt: "You are a helpful assistant.",
         temperature: 1.0,
         topK: 3,
@@ -49,6 +76,7 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
       this._session?.destroy();
       this._settingsDialog?.destroy();
       this._recognition?.abort();
+      this._stopCameraStream();
       this._detachDomHandlers();
     },
     // ─── Availability & session init ────────────────────────────────────────────
@@ -177,17 +205,13 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
         const stream = this._session.promptStreaming(promptInput);
         let fullText = "";
         for await (const chunk of stream) {
-          fullText = chunk; // streaming gives cumulative text
-          const updatedMessages = [...model.getData().messages];
-          updatedMessages[updatedMessages.length - 1] = {
-            role: "Assistant",
-            text: fullText
-          };
-          this._setModel({
-            messages: updatedMessages
-          });
+          fullText += chunk; // each chunk is a delta
+          // Use setProperty to update only the last message text — avoids destroying
+          // and recreating FeedListItem controls (which resets their expanded state).
+          const msgCount = model.getData().messages.length;
+          model.setProperty(`/messages/${msgCount - 1}/text`, fullText);
+          this._scrollToBottom();
         }
-        this._scrollToBottom();
       } catch (e) {
         MessageBox.error(`Prompt failed: ${String(e)}`);
         // Remove the empty assistant placeholder
@@ -210,21 +234,106 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
       this._setModel({
         messages: [],
         inputText: "",
-        pendingImageSrc: ""
+        pendingImageSrc: "",
+        pendingImageName: ""
       });
     },
     onClearImage: function _onClearImage() {
       this._pendingImageBlob = null;
       this._setModel({
-        pendingImageSrc: ""
+        pendingImageSrc: "",
+        pendingImageName: ""
       });
     },
-    // ─── Drop / Paste image ──────────────────────────────────────────────────────
-    _attachDomHandlers: function _attachDomHandlers() {
-      const composerEl = this.byId("composerInput").getDomRef();
-      if (!composerEl) return;
-      if (this._dropHandler) return; // already attached
+    // ─── Drop / Paste / Attach image ────────────────────────────────────────────
+    onAttach: function _onAttach() {
+      this._fileInput?.click();
+    },
+    onCapture: async function _onCapture() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        MessageToast.show("Camera access is not supported in this browser.");
+        return;
+      }
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "environment"
+          },
+          audio: false
+        });
+      } catch {
+        MessageToast.show("Could not access camera. Please allow camera permission.");
+        return;
+      }
+      this._cameraStream = stream;
 
+      // Build a small camera-preview dialog using a native <video> via sap.ui.core.HTML
+      const videoHtml = new HTML({
+        content: '<div style="text-align:center"><video id="__cameraPreview" autoplay playsinline muted style="max-width:100%;max-height:360px;border-radius:4px"></video></div>'
+      });
+      const snapBtn = new Button({
+        text: "Take Photo",
+        type: "Emphasized",
+        press: () => {
+          const video = document.getElementById("__cameraPreview");
+          if (!video) return;
+          const canvas = document.createElement("canvas");
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext("2d").drawImage(video, 0, 0);
+          canvas.toBlob(blob => {
+            if (blob) {
+              const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+              this._setImageBlob(blob, `photo-${ts}.jpg`);
+              cameraDialog.close();
+            }
+          }, "image/jpeg", 0.92);
+        }
+      });
+      const cameraDialog = new Dialog({
+        title: "Take a Photo",
+        contentWidth: "480px",
+        content: [videoHtml],
+        beginButton: snapBtn,
+        endButton: new Button({
+          text: "Cancel",
+          press: () => cameraDialog.close()
+        }),
+        afterClose: () => {
+          this._stopCameraStream();
+          cameraDialog.destroy();
+        }
+      });
+      this.getView().addDependent(cameraDialog);
+      cameraDialog.open();
+
+      // Attach stream to the video element after the dialog renders
+      setTimeout(() => {
+        const video = document.getElementById("__cameraPreview");
+        if (video) video.srcObject = stream;
+      }, 100);
+    },
+    _stopCameraStream: function _stopCameraStream() {
+      this._cameraStream?.getTracks().forEach(t => t.stop());
+      this._cameraStream = null;
+    },
+    _attachDomHandlers: function _attachDomHandlers() {
+      const composer = this.byId("composerInput");
+      if (!composer || this._dropHandler) return; // already attached
+
+      // Hidden file input for the attach button (supports gallery + camera on mobile)
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = "image/*";
+      fileInput.style.display = "none";
+      fileInput.addEventListener("change", () => {
+        const file = fileInput.files?.[0];
+        if (file) this._setImageBlob(file);
+        fileInput.value = ""; // reset so the same file can be re-selected
+      });
+      document.body.appendChild(fileInput);
+      this._fileInput = fileInput;
       this._dropHandler = e => {
         e.preventDefault();
         const file = e.dataTransfer?.files?.[0];
@@ -241,26 +350,43 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
           if (blob) this._setImageBlob(blob);
         }
       };
-      composerEl.addEventListener("dragover", e => e.preventDefault());
-      composerEl.addEventListener("drop", this._dropHandler);
-      composerEl.addEventListener("paste", this._pasteHandler);
+      this._keydownHandler = e => {
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          // Flush the current textarea value into the model — the two-way binding
+          // only updates on change (focus loss), so the model may lag behind.
+          const composer = this.byId("composerInput");
+          this._setModel({
+            inputText: composer.getValue()
+          });
+          void this.onSend();
+        }
+      };
+      composer.attachBrowserEvent("dragover", e => e.preventDefault());
+      composer.attachBrowserEvent("drop", this._dropHandler);
+      composer.attachBrowserEvent("paste", this._pasteHandler);
+      composer.attachBrowserEvent("keydown", this._keydownHandler);
     },
     _detachDomHandlers: function _detachDomHandlers() {
-      const composerEl = this.byId("composerInput")?.getDomRef?.();
-      if (composerEl && this._dropHandler) {
-        composerEl.removeEventListener("drop", this._dropHandler);
-      }
-      if (composerEl && this._pasteHandler) {
-        composerEl.removeEventListener("paste", this._pasteHandler);
+      const composer = this.byId("composerInput");
+      if (composer) {
+        if (this._dropHandler) composer.detachBrowserEvent("drop", this._dropHandler);
+        if (this._pasteHandler) composer.detachBrowserEvent("paste", this._pasteHandler);
+        if (this._keydownHandler) composer.detachBrowserEvent("keydown", this._keydownHandler);
       }
       this._dropHandler = null;
       this._pasteHandler = null;
+      this._keydownHandler = null;
+      this._fileInput?.remove();
+      this._fileInput = null;
     },
-    _setImageBlob: function _setImageBlob(blob) {
+    _setImageBlob: function _setImageBlob(blob, name) {
       this._pendingImageBlob = blob;
       const src = URL.createObjectURL(blob);
+      const displayName = name ?? (blob instanceof File ? blob.name : "image");
       this._setModel({
-        pendingImageSrc: src
+        pendingImageSrc: src,
+        pendingImageName: displayName
       });
       // Destroy session so it is re-created with expectedInputs including 'image'
       this._session?.destroy();
@@ -286,11 +412,15 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
       rec.continuous = false;
       rec.interimResults = false;
       rec.lang = "en-US";
+
+      // Snapshot the text that's already in the box at the moment recording starts
+      // so that onresult appends to it — not to the text that onresult itself wrote
+      // on a previous recording session.
+      const textBeforeRecording = state.inputText;
       rec.onresult = event => {
         const transcript = event.results[0][0].transcript;
-        const current = this.getView().getModel("promptModel").getData();
         this._setModel({
-          inputText: (current.inputText + " " + transcript).trim()
+          inputText: (textBeforeRecording + " " + transcript).trim()
         });
       };
       rec.onend = () => this._setModel({
@@ -303,6 +433,13 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
       this._recognition = rec;
       this._setModel({
         listening: true
+      });
+    },
+    // ─── Code view ─────────────────────────────────────────────────────────────
+    onToggleCode: function _onToggleCode() {
+      const model = this.getView().getModel("promptModel");
+      this._setModel({
+        showCode: !model.getData().showCode
       });
     },
     // ─── Settings dialog ────────────────────────────────────────────────────────
@@ -389,7 +526,8 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
     },
     _scrollToBottom: function _scrollToBottom() {
       const scroller = this.byId("chatScroll");
-      scroller?.scrollTo?.(0, 9999, 200);
+      const el = scroller?.getDomRef();
+      if (el) scroller.scrollTo(0, el.scrollHeight, 0);
     }
   });
   return PromptController;

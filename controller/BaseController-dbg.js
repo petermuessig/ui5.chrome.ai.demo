@@ -2,7 +2,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/UIComponent", "sap/ui/
   "use strict";
 
   /**
-   * @namespace ui5.chrome.ai.demo.controller
+   * @alias ui5.chrome.ai.demo.controller.BaseController
    */
   const BaseController = Controller.extend("ui5.chrome.ai.demo.controller.BaseController", {
     /**

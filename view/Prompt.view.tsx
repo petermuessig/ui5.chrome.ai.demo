@@ -1,11 +1,11 @@
 import View from "sap/ui/core/mvc/View";
-import Controller from "sap/ui/core/mvc/Controller";
 import Control from "sap/ui/core/Control";
 import Page from "sap/m/Page";
 import Button from "sap/m/Button";
 import VBox from "sap/m/VBox";
 import HBox from "sap/m/HBox";
 import FlexBox from "sap/m/FlexBox";
+import FlexItemData from "sap/m/FlexItemData";
 import TextArea from "sap/m/TextArea";
 import FeedListItem from "sap/m/FeedListItem";
 import List from "sap/m/List";
@@ -13,28 +13,22 @@ import ScrollContainer from "sap/m/ScrollContainer";
 import MessageStrip from "sap/m/MessageStrip";
 import ProgressIndicator from "sap/m/ProgressIndicator";
 import Label from "sap/m/Label";
+import Link from "sap/m/Link";
 import Image from "sap/m/Image";
-import OverflowToolbar from "sap/m/OverflowToolbar";
-import ToolbarSpacer from "sap/m/ToolbarSpacer";
-import ToolbarSeparator from "sap/m/ToolbarSeparator";
+import CodeEditor from "sap/ui/codeeditor/CodeEditor";
 import { If } from "ui5/community/jsx/runtime/runtime/runtime";
 import PromptController from "../controller/Prompt.controller";
 
 /**
- * @namespace ui5.chrome.ai.demo.view
+ * @alias ui5.chrome.ai.demo.view.Prompt
  */
 class Prompt extends View {
-	constructor() {
-		super();
-		(this as unknown as { controllerName: string }).controllerName = "ui5.chrome.ai.demo.controller.Prompt";
-	}
-
 	getAutoPrefixId(): boolean {
 		return true;
 	}
 
 	getControllerModuleName(): string {
-		return "ui5.chrome.ai.demo.controller.Prompt";
+		return "ui5/chrome/ai/demo/controller/Prompt";
 	}
 
 	createContent(): Control | Control[] | Promise<Control | Control[]> {
@@ -45,7 +39,14 @@ class Prompt extends View {
 			title="Prompt (Chat)"
 			showNavButton={true}
 			navButtonPress={ctrl.onNavBack.bind(ctrl)}
+			enableScrolling={false}
+			class="sapUiContentPadding"
 			headerContent={[
+				<Button
+					icon="{= ${promptModel>/showCode} ? 'sap-icon://media-play' : 'sap-icon://source-code' }"
+					tooltip="{= ${promptModel>/showCode} ? 'Show demo' : 'Show code' }"
+					press={ctrl.onToggleCode.bind(ctrl)}
+				/>,
 				<Button
 					icon="sap-icon://delete"
 					tooltip="Clear chat"
@@ -58,7 +59,14 @@ class Prompt extends View {
 				/>
 			]}
 		>
-			<VBox fitContainer={true} class="sapUiSmallMargin" height="100%">
+			{/* ── Demo view ──────────────────────────────────────────────── */}
+			<FlexBox
+				direction="Column"
+				fitContainer={true}
+				visible="{= !${promptModel>/showCode} }"
+				class="chatFlexColumn"
+			>
+				{/* Unavailable / download strips */}
 				<If condition="{promptModel>/unavailable}">
 					<MessageStrip
 						id="unavailableStrip"
@@ -79,14 +87,15 @@ class Prompt extends View {
 					</VBox>
 				</If>
 
-				{/* Chat transcript */}
+				{/* Chat transcript — grows to fill available space */}
 				<ScrollContainer
 					id="chatScroll"
-					height="100%"
 					width="100%"
 					horizontal={false}
 					vertical={true}
 					focusable={false}
+					class="chatScrollFill"
+					layoutData={new FlexItemData({ growFactor: 1, shrinkFactor: 1, baseSize: "0" })}
 				>
 					<List
 						id="chatList"
@@ -96,20 +105,28 @@ class Prompt extends View {
 							template: new FeedListItem({
 								sender: "{promptModel>role}",
 								text: "{promptModel>text}",
-								showIcon: false
+								showIcon: false,
+								senderActive: false,
+								maxCharacters: 99999
 							} as object)
 						}}
 					/>
 				</ScrollContainer>
 
-				{/* Pending image thumbnail */}
+				{/* Pending image chip */}
 				<If condition="{promptModel>/pendingImageSrc}">
-					<HBox alignItems="Center" class="sapUiSmallMarginTop">
+					<HBox alignItems="Center" class="sapUiTinyMarginTop attachmentChip">
 						<Image
 							id="pendingImageThumb"
 							src="{promptModel>/pendingImageSrc}"
-							width="80px"
-							height="80px"
+							width="48px"
+							height="48px"
+							densityAware={false}
+							class="attachmentThumb"
+						/>
+						<Label
+							text="{promptModel>/pendingImageName}"
+							class="sapUiSmallMarginBegin attachmentLabel"
 						/>
 						<Button
 							icon="sap-icon://decline"
@@ -120,10 +137,12 @@ class Prompt extends View {
 					</HBox>
 				</If>
 
-				{/* Composer bar */}
-				<OverflowToolbar
+				{/* Composer bar — stays at the bottom */}
+				<HBox
 					id="composerBar"
-					class="sapUiSmallMarginTop"
+					alignItems="Center"
+					class="sapUiTinyMarginTop"
+					layoutData={new FlexItemData({ growFactor: 0, shrinkFactor: 0 })}
 				>
 					<Button
 						id="micBtn"
@@ -132,16 +151,28 @@ class Prompt extends View {
 						type="{= ${promptModel>/listening} ? 'Attention' : 'Default' }"
 						press={ctrl.onMicToggle.bind(ctrl)}
 					/>
+					<Button
+						id="attachBtn"
+						icon="sap-icon://attachment"
+						tooltip="Attach image from file"
+						press={ctrl.onAttach.bind(ctrl)}
+					/>
+					<Button
+						id="cameraBtn"
+						icon="sap-icon://camera"
+						tooltip="Take a photo"
+						press={ctrl.onCapture.bind(ctrl)}
+					/>
 					<TextArea
 						id="composerInput"
-						placeholder="Type a message, or drop / paste an image..."
+						placeholder="Type a message, or 📎 attach / 📷 capture / paste an image..."
 						rows={2}
 						growing={true}
 						growingMaxLines={6}
 						width="100%"
 						value="{promptModel>/inputText}"
+						layoutData={new FlexItemData({ growFactor: 1 })}
 					/>
-					<ToolbarSeparator />
 					<Button
 						id="sendBtn"
 						icon="sap-icon://paper-plane"
@@ -151,7 +182,25 @@ class Prompt extends View {
 						busy="{promptModel>/busy}"
 						press={ctrl.onSend.bind(ctrl)}
 					/>
-				</OverflowToolbar>
+				</HBox>
+			</FlexBox>
+
+			{/* ── Code view ──────────────────────────────────────────────── */}
+			<VBox class="sapUiSmallMargin" fitContainer={true} visible="{promptModel>/showCode}">
+				<CodeEditor
+					type="javascript"
+					editable={false}
+					lineNumbers={true}
+					height="400px"
+					width="100%"
+					value="{promptModel>/code}"
+					class="sapUiSmallMarginBottom"
+				/>
+				<Link
+					text="Chrome Prompt API docs ↗"
+					href="https://developer.chrome.com/docs/ai/prompt-api"
+					target="_blank"
+				/>
 			</VBox>
 		</Page>;
 	}

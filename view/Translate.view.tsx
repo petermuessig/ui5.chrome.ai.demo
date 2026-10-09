@@ -1,40 +1,31 @@
 import View from "sap/ui/core/mvc/View";
-import Controller from "sap/ui/core/mvc/Controller";
 import Control from "sap/ui/core/Control";
 import Page from "sap/m/Page";
 import Button from "sap/m/Button";
-import Bar from "sap/m/Bar";
 import VBox from "sap/m/VBox";
 import HBox from "sap/m/HBox";
 import FlexBox from "sap/m/FlexBox";
 import Select from "sap/m/Select";
 import TextArea from "sap/m/TextArea";
 import Label from "sap/m/Label";
+import Link from "sap/m/Link";
 import MessageStrip from "sap/m/MessageStrip";
 import ProgressIndicator from "sap/m/ProgressIndicator";
-import Dialog from "sap/m/Dialog";
-import SimpleForm from "sap/ui/layout/form/SimpleForm";
 import Item from "sap/ui/core/Item";
-import OverflowToolbar from "sap/m/OverflowToolbar";
-import ToolbarSpacer from "sap/m/ToolbarSpacer";
+import CodeEditor from "sap/ui/codeeditor/CodeEditor";
 import { If } from "ui5/community/jsx/runtime/runtime/runtime";
-import TranslateController from "../controller/Translate.controller";
+import type TranslateController from "../controller/Translate.controller";
 
 /**
- * @namespace ui5.chrome.ai.demo.view
+ * @alias ui5.chrome.ai.demo.view.Translate
  */
 class Translate extends View {
-	constructor() {
-		super();
-		(this as unknown as { controllerName: string }).controllerName = "ui5.chrome.ai.demo.controller.Translate";
-	}
-
 	getAutoPrefixId(): boolean {
 		return true;
 	}
 
 	getControllerModuleName(): string {
-		return "ui5.chrome.ai.demo.controller.Translate";
+		return "ui5/chrome/ai/demo/controller/Translate";
 	}
 
 	createContent(): Control | Control[] | Promise<Control | Control[]> {
@@ -47,6 +38,7 @@ class Translate extends View {
 		>
 			<Item key="auto" text="Auto-Detect" />
 			<Item key="ar" text="Arabic" />
+			<Item key="bg" text="Bulgarian" />
 			<Item key="zh" text="Chinese (Simplified)" />
 			<Item key="zh-Hant" text="Chinese (Traditional)" />
 			<Item key="cs" text="Czech" />
@@ -84,6 +76,7 @@ class Translate extends View {
 		>
 			<Item key="de" text="German" />
 			<Item key="ar" text="Arabic" />
+			<Item key="bg" text="Bulgarian" />
 			<Item key="zh" text="Chinese (Simplified)" />
 			<Item key="zh-Hant" text="Chinese (Traditional)" />
 			<Item key="cs" text="Czech" />
@@ -121,13 +114,18 @@ class Translate extends View {
 			navButtonPress={ctrl.onNavBack.bind(ctrl)}
 			headerContent={[
 				<Button
+					icon="{= ${translateModel>/showCode} ? 'sap-icon://media-play' : 'sap-icon://source-code' }"
+					tooltip="{= ${translateModel>/showCode} ? 'Show demo' : 'Show code' }"
+					press={ctrl.onToggleCode.bind(ctrl)}
+				/>,
+				<Button
 					icon="sap-icon://action-settings"
 					tooltip="Settings"
 					press={ctrl.onOpenSettings.bind(ctrl)}
 				/>
 			]}
 		>
-			<VBox class="sapUiSmallMargin" fitContainer={true}>
+			<VBox class="sapUiSmallMargin" fitContainer={true} visible="{= !${translateModel>/showCode} }">
 				<If condition="{translateModel>/unavailable}">
 					<MessageStrip
 						id="unavailableStrip"
@@ -204,6 +202,28 @@ class Translate extends View {
 					press={ctrl.onTranslate.bind(ctrl)}
 				/>
 			</VBox>
+			<VBox class="sapUiSmallMargin" fitContainer={true} visible="{translateModel>/showCode}">
+					<CodeEditor
+						type="javascript"
+						editable={false}
+						lineNumbers={true}
+						height="400px"
+						width="100%"
+						value="{translateModel>/code}"
+						class="sapUiSmallMarginBottom"
+					/>
+					<Link
+						text="Chrome Language Detector API docs ↗"
+						href="https://developer.chrome.com/docs/ai/language-detection"
+						target="_blank"
+						class="sapUiSmallMarginBottom"
+					/>
+					<Link
+						text="Chrome Translator API docs ↗"
+						href="https://developer.chrome.com/docs/ai/translator-api"
+						target="_blank"
+					/>
+				</VBox>
 		</Page>;
 	}
 }

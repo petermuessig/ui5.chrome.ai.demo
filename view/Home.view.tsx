@@ -1,7 +1,7 @@
 import View from "sap/ui/core/mvc/View";
-import Controller from "sap/ui/core/mvc/Controller";
 import Control from "sap/ui/core/Control";
 import Page from "sap/m/Page";
+import Button from "sap/m/Button";
 import VBox from "sap/m/VBox";
 import FlexBox from "sap/m/FlexBox";
 import GenericTile from "sap/m/GenericTile";
@@ -9,23 +9,18 @@ import TileContent from "sap/m/TileContent";
 import NumericContent from "sap/m/NumericContent";
 import Text from "sap/m/Text";
 import Title from "sap/m/Title";
-import HomeController from "../controller/Home.controller";
+import type HomeController from "../controller/Home.controller";
 
 /**
- * @namespace ui5.chrome.ai.demo.view
+ * @alias ui5.chrome.ai.demo.view.Home
  */
 class Home extends View {
-	constructor() {
-		super();
-		(this as unknown as { controllerName: string }).controllerName = "ui5.chrome.ai.demo.controller.Home";
-	}
-
 	getAutoPrefixId(): boolean {
 		return true;
 	}
 
 	getControllerModuleName(): string {
-		return "ui5.chrome.ai.demo.controller.Home";
+		return "ui5/chrome/ai/demo/controller/Home";
 	}
 
 	createContent(): Control | Control[] | Promise<Control | Control[]> {
@@ -35,6 +30,13 @@ class Home extends View {
 			id="homePage"
 			title="Chrome Built-in AI"
 			showNavButton={false}
+			headerContent={[
+				<Button
+					icon="sap-icon://sys-help"
+					tooltip="Setup & status"
+					press={ctrl.onNavToHelp.bind(ctrl)}
+				/>
+			]}
 		>
 			<VBox alignItems="Center" justifyContent="Center" class="sapUiSmallMargin">
 				<Title

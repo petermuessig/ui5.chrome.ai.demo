@@ -6,11 +6,14 @@ sap.ui.define(["./BaseController"], function (__BaseController) {
   }
   const BaseController = _interopRequireDefault(__BaseController);
   /**
-   * @namespace ui5.chrome.ai.demo.controller
+   * @alias ui5.chrome.ai.demo.controller.Home
    */
-  const HomeController = BaseController.extend("ui5.chrome.ai.demo.controller.HomeController", {
+  const HomeController = BaseController.extend("ui5.chrome.ai.demo.controller.Home", {
     onInit: function _onInit() {
       // nothing to init
+    },
+    onNavToHelp: function _onNavToHelp() {
+      this.navTo("help");
     },
     onNavToTranslate: function _onNavToTranslate() {
       this.navTo("translate");

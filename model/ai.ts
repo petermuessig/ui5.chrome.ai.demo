@@ -2,7 +2,6 @@
  * Shared Chrome Built-in AI helper utilities.
  * Centralises feature detection, availability checking, and the download-progress monitor adapter.
  *
- * @namespace ui5.chrome.ai.demo.model
  */
 
 // ─── Feature detection ───────────────────────────────────────────────────────
@@ -119,6 +118,7 @@ export function makeMonitor(onProgress: ProgressCallback): (monitor: EventTarget
 /** BCP-47 language codes supported by the Translator/Language Detector APIs. */
 export const SUPPORTED_LANGUAGES: { key: string; text: string }[] = [
 	{ key: "ar", text: "Arabic" },
+	{ key: "bg", text: "Bulgarian" },
 	{ key: "zh", text: "Chinese (Simplified)" },
 	{ key: "zh-Hant", text: "Chinese (Traditional)" },
 	{ key: "cs", text: "Czech" },

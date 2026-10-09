@@ -9,8 +9,26 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
   const checkTranslatorAvailability = ___model_ai["checkTranslatorAvailability"];
   const makeMonitor = ___model_ai["makeMonitor"];
   const SUPPORTED_LANGUAGES = ___model_ai["SUPPORTED_LANGUAGES"];
+  const USAGE_CODE = `// Chrome Built-in AI — Language Detector & Translator APIs
+
+// 1. Detect language
+const detector = await LanguageDetector.create();
+const [best] = await detector.detect("Bonjour le monde");
+console.log(best.detectedLanguage); // "fr"
+
+// 2. Create a translator (model downloads on first use)
+const translator = await Translator.create({
+  sourceLanguage: "fr",
+  targetLanguage: "en"
+});
+
+// 3. Translate — runs entirely on-device
+const result = await translator.translate("Bonjour le monde");
+console.log(result); // "Hello world"
+`;
+
   /**
-   * @namespace ui5.chrome.ai.demo.controller
+   * @alias ui5.chrome.ai.demo.controller.TranslateController
    */
   const TranslateController = BaseController.extend("ui5.chrome.ai.demo.controller.TranslateController", {
     constructor: function constructor() {
@@ -19,6 +37,7 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
       this._translator = null;
       this._detectTimer = null;
       this._settingsDialog = null;
+      this._keydownHandler = null;
       this._state = {
         sourceLang: "auto",
         targetLang: "de",
@@ -33,7 +52,9 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
         unavailableText: "",
         downloading: false,
         downloadingText: "",
-        downloadProgress: 0
+        downloadProgress: 0,
+        showCode: false,
+        code: USAGE_CODE
       };
     },
     onInit: function _onInit() {
@@ -41,7 +62,23 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
       this.getView().setModel(model, "translateModel");
       void this._checkAvailability();
     },
+    onAfterRendering: function _onAfterRendering() {
+      const sourceTA = this.byId("sourceText");
+      if (!sourceTA || this._keydownHandler) return;
+      this._keydownHandler = e => {
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          void this.onTranslate();
+        }
+      };
+      sourceTA.attachBrowserEvent("keydown", this._keydownHandler);
+    },
     onExit: function _onExit() {
+      if (this._keydownHandler) {
+        const sourceTA = this.byId("sourceText");
+        sourceTA?.detachBrowserEvent("keydown", this._keydownHandler);
+        this._keydownHandler = null;
+      }
       this._detector?.destroy();
       this._translator?.destroy();
       this._settingsDialog?.destroy();
@@ -168,6 +205,14 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
           const best = results[0];
           const confidence = Math.round((best.confidence ?? 0) * 100);
           const langName = this._getLangName(best.detectedLanguage);
+
+          // When the detected language changes and we are in auto mode,
+          // the translator was initialised for the old source language —
+          // destroy it so it gets re-created with the correct pair next time.
+          if (state.sourceLang === "auto" && best.detectedLanguage !== state.detectedLangCode) {
+            this._translator?.destroy();
+            this._translator = null;
+          }
           this._setModel({
             detectedLangCode: best.detectedLanguage,
             detectedLangText: state.sourceLang === "auto" ? `Detected: ${langName} (${confidence}%)` : ""
@@ -237,6 +282,13 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
       });
       const sourceTA = this.byId("sourceText");
       sourceTA.setValue(state.targetText);
+    },
+    // ─── Code view ─────────────────────────────────────────────────────────────
+    onToggleCode: function _onToggleCode() {
+      const model = this.getView().getModel("translateModel");
+      this._setModel({
+        showCode: !model.getData().showCode
+      });
     },
     // ─── Settings dialog ────────────────────────────────────────────────────────
     onOpenSettings: function _onOpenSettings() {

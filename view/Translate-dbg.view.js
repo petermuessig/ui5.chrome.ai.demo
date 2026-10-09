@@ -1,22 +1,18 @@
-sap.ui.define(["sap/ui/core/mvc/View", "sap/m/Page", "sap/m/Button", "sap/m/VBox", "sap/m/HBox", "sap/m/FlexBox", "sap/m/Select", "sap/m/TextArea", "sap/m/Label", "sap/m/MessageStrip", "sap/m/ProgressIndicator", "sap/ui/core/Item", "ui5/community/jsx/runtime/runtime/runtime", "ui5/community/jsx/runtime/jsx-runtime"], function (View, Page, Button, VBox, HBox, FlexBox, Select, TextArea, Label, MessageStrip, ProgressIndicator, Item, __ui5_community_jsx_runtime_runtime_runtime, __ui5_community_jsx_runtime_jsx_runtime) {
+sap.ui.define(["sap/ui/core/mvc/View", "sap/m/Page", "sap/m/Button", "sap/m/VBox", "sap/m/HBox", "sap/m/FlexBox", "sap/m/Select", "sap/m/TextArea", "sap/m/Label", "sap/m/Link", "sap/m/MessageStrip", "sap/m/ProgressIndicator", "sap/ui/core/Item", "sap/ui/codeeditor/CodeEditor", "ui5/community/jsx/runtime/runtime/runtime", "ui5/community/jsx/runtime/jsx-runtime"], function (View, Page, Button, VBox, HBox, FlexBox, Select, TextArea, Label, Link, MessageStrip, ProgressIndicator, Item, CodeEditor, __ui5_community_jsx_runtime_runtime_runtime, __ui5_community_jsx_runtime_jsx_runtime) {
   "use strict";
 
   const _jsx = __ui5_community_jsx_runtime_jsx_runtime["jsx"];
   const _jsxs = __ui5_community_jsx_runtime_jsx_runtime["jsxs"];
   const If = __ui5_community_jsx_runtime_runtime_runtime["If"];
   /**
-   * @namespace ui5.chrome.ai.demo.view
+   * @alias ui5.chrome.ai.demo.view.Translate
    */
   const Translate = View.extend("ui5.chrome.ai.demo.view.Translate", {
-    constructor: function _constructor() {
-      View.prototype.constructor.call(this);
-      this.controllerName = "ui5.chrome.ai.demo.controller.Translate";
-    },
     getAutoPrefixId: function _getAutoPrefixId() {
       return true;
     },
     getControllerModuleName: function _getControllerModuleName() {
-      return "ui5.chrome.ai.demo.controller.Translate";
+      return "ui5/chrome/ai/demo/controller/Translate";
     },
     createContent: function _createContent() {
       const ctrl = this.getController();
@@ -30,6 +26,8 @@ sap.ui.define(["sap/ui/core/mvc/View", "sap/m/Page", "sap/m/Button", "sap/m/VBox
         }, "auto"), _jsx(Item, {
           text: "Arabic"
         }, "ar"), _jsx(Item, {
+          text: "Bulgarian"
+        }, "bg"), _jsx(Item, {
           text: "Chinese (Simplified)"
         }, "zh"), _jsx(Item, {
           text: "Chinese (Traditional)"
@@ -97,6 +95,8 @@ sap.ui.define(["sap/ui/core/mvc/View", "sap/m/Page", "sap/m/Button", "sap/m/VBox
         }, "de"), _jsx(Item, {
           text: "Arabic"
         }, "ar"), _jsx(Item, {
+          text: "Bulgarian"
+        }, "bg"), _jsx(Item, {
           text: "Chinese (Simplified)"
         }, "zh"), _jsx(Item, {
           text: "Chinese (Traditional)"
@@ -154,19 +154,24 @@ sap.ui.define(["sap/ui/core/mvc/View", "sap/m/Page", "sap/m/Button", "sap/m/VBox
           text: "Vietnamese"
         }, "vi")]
       });
-      return _jsx(Page, {
+      return _jsxs(Page, {
         id: "translatePage",
         title: "Translate",
         showNavButton: true,
         navButtonPress: ctrl.onNavBack.bind(ctrl),
         headerContent: [_jsx(Button, {
+          icon: "{= ${translateModel>/showCode} ? 'sap-icon://media-play' : 'sap-icon://source-code' }",
+          tooltip: "{= ${translateModel>/showCode} ? 'Show demo' : 'Show code' }",
+          press: ctrl.onToggleCode.bind(ctrl)
+        }), _jsx(Button, {
           icon: "sap-icon://action-settings",
           tooltip: "Settings",
           press: ctrl.onOpenSettings.bind(ctrl)
         })],
-        children: _jsxs(VBox, {
+        children: [_jsxs(VBox, {
           class: "sapUiSmallMargin",
           fitContainer: true,
+          visible: "{= !${translateModel>/showCode} }",
           children: [_jsx(If, {
             condition: "{translateModel>/unavailable}",
             children: _jsx(MessageStrip, {
@@ -240,7 +245,29 @@ sap.ui.define(["sap/ui/core/mvc/View", "sap/m/Page", "sap/m/Button", "sap/m/VBox
             busy: "{translateModel>/busy}",
             press: ctrl.onTranslate.bind(ctrl)
           })]
-        })
+        }), _jsxs(VBox, {
+          class: "sapUiSmallMargin",
+          fitContainer: true,
+          visible: "{translateModel>/showCode}",
+          children: [_jsx(CodeEditor, {
+            type: "javascript",
+            editable: false,
+            lineNumbers: true,
+            height: "400px",
+            width: "100%",
+            value: "{translateModel>/code}",
+            class: "sapUiSmallMarginBottom"
+          }), _jsx(Link, {
+            text: "Chrome Language Detector API docs \u2197",
+            href: "https://developer.chrome.com/docs/ai/language-detection",
+            target: "_blank",
+            class: "sapUiSmallMarginBottom"
+          }), _jsx(Link, {
+            text: "Chrome Translator API docs \u2197",
+            href: "https://developer.chrome.com/docs/ai/translator-api",
+            target: "_blank"
+          })]
+        })]
       });
     }
   });

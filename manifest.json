@@ -7,8 +7,7 @@
 			"bundleUrl": "i18n/i18n.properties",
 			"supportedLocales": [
 				"",
-				"de",
-				"en"
+				"de"
 			]
 		},
 		"title": "{{appTitle}}",
@@ -31,6 +30,13 @@
 		}
 	},
 	"sap.ui5": {
+		"resources": {
+			"css": [
+				{
+					"uri": "css/app.css"
+				}
+			]
+		},
 		"rootView": {
 			"viewName": "ui5.chrome.ai.demo.view.App",
 			"type": "XML",
@@ -40,7 +46,8 @@
 			"minUI5Version": "1.153.0",
 			"libs": {
 				"sap.ui.core": {},
-				"sap.m": {}
+				"sap.m": {},
+				"sap.ui.codeeditor": {}
 			}
 		},
 		"handleValidation": true,
@@ -91,6 +98,11 @@
 					"pattern": "prompt",
 					"name": "prompt",
 					"target": "prompt"
+				},
+				{
+					"pattern": "help",
+					"name": "help",
+					"target": "help"
 				}
 			],
 			"targets": {
@@ -109,6 +121,10 @@
 				"prompt": {
 					"id": "prompt",
 					"name": "module:ui5/chrome/ai/demo/view/Prompt.view"
+				},
+				"help": {
+					"id": "help",
+					"name": "module:ui5/chrome/ai/demo/view/Help.view"
 				}
 			}
 		},

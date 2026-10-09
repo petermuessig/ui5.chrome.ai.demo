@@ -6,7 +6,7 @@ sap.ui.define(["./BaseController"], function (__BaseController) {
   }
   const BaseController = _interopRequireDefault(__BaseController);
   /**
-   * @namespace ui5.chrome.ai.demo.controller
+   * @alias ui5.chrome.ai.demo.controller.App
    */
   const App = BaseController.extend("ui5.chrome.ai.demo.controller.App", {
     onInit: function _onInit() {

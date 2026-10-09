@@ -7,14 +7,33 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
   const BaseController = _interopRequireDefault(__BaseController);
   const checkSummarizerAvailability = ___model_ai["checkSummarizerAvailability"];
   const makeMonitor = ___model_ai["makeMonitor"];
+  const USAGE_CODE = `// Chrome Built-in AI — Summarizer API
+
+// 1. Create a summarizer (model downloads on first use)
+const summarizer = await Summarizer.create({
+  type: "key-points",   // "tldr" | "key-points" | "teaser" | "headline"
+  format: "plain-text", // "plain-text" | "markdown"
+  length: "medium"      // "short" | "medium" | "long"
+});
+
+// 2. Stream the summary — runs entirely on-device
+const stream = summarizer.summarizeStreaming(inputText);
+let result = "";
+for await (const chunk of stream) {
+  result += chunk; // each chunk is an incremental delta
+  display(result);
+}
+`;
+
   /**
-   * @namespace ui5.chrome.ai.demo.controller
+   * @alias ui5.chrome.ai.demo.controller.SummarizeController
    */
   const SummarizeController = BaseController.extend("ui5.chrome.ai.demo.controller.SummarizeController", {
     constructor: function constructor() {
       BaseController.prototype.constructor.apply(this, arguments);
       this._summarizer = null;
       this._settingsDialog = null;
+      this._keydownHandler = null;
       this._state = {
         inputText: "",
         outputText: "",
@@ -25,6 +44,8 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
         downloading: false,
         downloadingText: "",
         downloadProgress: 0,
+        showCode: false,
+        code: USAGE_CODE,
         type: "key-points",
         format: "plain-text",
         length: "medium",
@@ -36,7 +57,23 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
       this.getView().setModel(model, "summarizeModel");
       void this._checkAvailability();
     },
+    onAfterRendering: function _onAfterRendering() {
+      const inputTA = this.byId("inputText");
+      if (!inputTA || this._keydownHandler) return;
+      this._keydownHandler = e => {
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          void this.onSummarize();
+        }
+      };
+      inputTA.attachBrowserEvent("keydown", this._keydownHandler);
+    },
     onExit: function _onExit() {
+      if (this._keydownHandler) {
+        const inputTA = this.byId("inputText");
+        inputTA?.detachBrowserEvent("keydown", this._keydownHandler);
+        this._keydownHandler = null;
+      }
       this._summarizer?.destroy();
       this._settingsDialog?.destroy();
     },
@@ -126,6 +163,13 @@ sap.ui.define(["./BaseController", "sap/ui/model/json/JSONModel", "sap/m/Message
           busy: false
         });
       }
+    },
+    // ─── Code view ─────────────────────────────────────────────────────────────
+    onToggleCode: function _onToggleCode() {
+      const model = this.getView().getModel("summarizeModel");
+      this._setModel({
+        showCode: !model.getData().showCode
+      });
     },
     // ─── Settings dialog ────────────────────────────────────────────────────────
     onOpenSettings: function _onOpenSettings() {

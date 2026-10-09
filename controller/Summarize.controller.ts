@@ -21,6 +21,8 @@ interface SummarizeState {
 	downloading: boolean;
 	downloadingText: string;
 	downloadProgress: number;
+	showCode: boolean;
+	code: string;
 	// settings
 	type: "tldr" | "key-points" | "teaser" | "headline";
 	format: "markdown" | "plain-text";
@@ -28,12 +30,31 @@ interface SummarizeState {
 	sharedContext: string;
 }
 
+const USAGE_CODE = `// Chrome Built-in AI — Summarizer API
+
+// 1. Create a summarizer (model downloads on first use)
+const summarizer = await Summarizer.create({
+  type: "key-points",   // "tldr" | "key-points" | "teaser" | "headline"
+  format: "plain-text", // "plain-text" | "markdown"
+  length: "medium"      // "short" | "medium" | "long"
+});
+
+// 2. Stream the summary — runs entirely on-device
+const stream = summarizer.summarizeStreaming(inputText);
+let result = "";
+for await (const chunk of stream) {
+  result += chunk; // each chunk is an incremental delta
+  display(result);
+}
+`;
+
 /**
- * @namespace ui5.chrome.ai.demo.controller
+ * @alias ui5.chrome.ai.demo.controller.SummarizeController
  */
 export default class SummarizeController extends BaseController {
 	private _summarizer: Summarizer | null = null;
 	private _settingsDialog: Dialog | null = null;
+	private _keydownHandler: ((e: KeyboardEvent) => void) | null = null;
 
 	private _state: SummarizeState = {
 		inputText: "",
@@ -45,6 +66,8 @@ export default class SummarizeController extends BaseController {
 		downloading: false,
 		downloadingText: "",
 		downloadProgress: 0,
+		showCode: false,
+		code: USAGE_CODE,
 		type: "key-points",
 		format: "plain-text",
 		length: "medium",
@@ -57,7 +80,24 @@ export default class SummarizeController extends BaseController {
 		void this._checkAvailability();
 	}
 
+	public onAfterRendering(): void {
+		const inputTA = this.byId("inputText") as TextArea;
+		if (!inputTA || this._keydownHandler) return;
+		this._keydownHandler = (e: KeyboardEvent) => {
+			if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+				e.preventDefault();
+				void this.onSummarize();
+			}
+		};
+		inputTA.attachBrowserEvent("keydown", this._keydownHandler as EventListener);
+	}
+
 	public onExit(): void {
+		if (this._keydownHandler) {
+			const inputTA = this.byId("inputText") as TextArea;
+			inputTA?.detachBrowserEvent("keydown", this._keydownHandler as EventListener);
+			this._keydownHandler = null;
+		}
 		this._summarizer?.destroy();
 		this._settingsDialog?.destroy();
 	}
@@ -141,6 +181,13 @@ export default class SummarizeController extends BaseController {
 		} finally {
 			this._setModel({ busy: false });
 		}
+	}
+
+	// ─── Code view ─────────────────────────────────────────────────────────────
+
+	public onToggleCode(): void {
+		const model = this.getView().getModel("summarizeModel") as JSONModel;
+		this._setModel({ showCode: !(model.getData() as SummarizeState).showCode });
 	}
 
 	// ─── Settings dialog ────────────────────────────────────────────────────────

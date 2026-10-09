@@ -6,7 +6,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "./model/models", "sap/ui/Device"], fu
   }
   const models = _interopRequireDefault(__models);
   /**
-   * @namespace ui5.chrome.ai.demo
+   * @alias ui5.chrome.ai.demo.Component
    */
   const Component = UIComponent.extend("ui5.chrome.ai.demo.Component", {
     metadata: {

@@ -1,21 +1,17 @@
-sap.ui.define(["sap/ui/core/mvc/View", "sap/m/Page", "sap/m/VBox", "sap/m/FlexBox", "sap/m/GenericTile", "sap/m/TileContent", "sap/m/NumericContent", "sap/m/Text", "sap/m/Title", "ui5/community/jsx/runtime/jsx-runtime"], function (View, Page, VBox, FlexBox, GenericTile, TileContent, NumericContent, Text, Title, __ui5_community_jsx_runtime_jsx_runtime) {
+sap.ui.define(["sap/ui/core/mvc/View", "sap/m/Page", "sap/m/Button", "sap/m/VBox", "sap/m/FlexBox", "sap/m/GenericTile", "sap/m/TileContent", "sap/m/NumericContent", "sap/m/Text", "sap/m/Title", "ui5/community/jsx/runtime/jsx-runtime"], function (View, Page, Button, VBox, FlexBox, GenericTile, TileContent, NumericContent, Text, Title, __ui5_community_jsx_runtime_jsx_runtime) {
   "use strict";
 
   const _jsx = __ui5_community_jsx_runtime_jsx_runtime["jsx"];
   const _jsxs = __ui5_community_jsx_runtime_jsx_runtime["jsxs"];
   /**
-   * @namespace ui5.chrome.ai.demo.view
+   * @alias ui5.chrome.ai.demo.view.Home
    */
   const Home = View.extend("ui5.chrome.ai.demo.view.Home", {
-    constructor: function _constructor() {
-      View.prototype.constructor.call(this);
-      this.controllerName = "ui5.chrome.ai.demo.controller.Home";
-    },
     getAutoPrefixId: function _getAutoPrefixId() {
       return true;
     },
     getControllerModuleName: function _getControllerModuleName() {
-      return "ui5.chrome.ai.demo.controller.Home";
+      return "ui5/chrome/ai/demo/controller/Home";
     },
     createContent: function _createContent() {
       const ctrl = this.getController();
@@ -23,6 +19,11 @@ sap.ui.define(["sap/ui/core/mvc/View", "sap/m/Page", "sap/m/VBox", "sap/m/FlexBo
         id: "homePage",
         title: "Chrome Built-in AI",
         showNavButton: false,
+        headerContent: [_jsx(Button, {
+          icon: "sap-icon://sys-help",
+          tooltip: "Setup & status",
+          press: ctrl.onNavToHelp.bind(ctrl)
+        })],
         children: _jsxs(VBox, {
           alignItems: "Center",
           justifyContent: "Center",

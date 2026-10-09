@@ -5,7 +5,6 @@ sap.ui.define([], function () {
    * Shared Chrome Built-in AI helper utilities.
    * Centralises feature detection, availability checking, and the download-progress monitor adapter.
    *
-   * @namespace ui5.chrome.ai.demo.model
    */
 
   // ─── Feature detection ───────────────────────────────────────────────────────
@@ -122,6 +121,9 @@ sap.ui.define([], function () {
   const SUPPORTED_LANGUAGES = [{
     key: "ar",
     text: "Arabic"
+  }, {
+    key: "bg",
+    text: "Bulgarian"
   }, {
     key: "zh",
     text: "Chinese (Simplified)"
