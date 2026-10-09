@@ -54,7 +54,7 @@ console.log(result); // "Hello world"
 `;
 
 /**
- * @namespace ui5.chrome.ai.demo.controller
+ * @alias ui5.chrome.ai.demo.controller.TranslateController
  */
 export default class TranslateController extends BaseController {
 	private _detector: LanguageDetector | null = null;
@@ -298,7 +298,7 @@ export default class TranslateController extends BaseController {
 			sourceText: state.targetText,
 			targetText: state.sourceText
 		});
-		const sourceTA = this.byId("sourceText") as unknown as { setValue(v: string): void };
+		const sourceTA = this.byId("sourceText") as TextArea;
 		sourceTA.setValue(state.targetText);
 	}
 

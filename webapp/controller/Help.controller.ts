@@ -33,7 +33,7 @@ function statusToUi(s: AvailabilityStatus): ApiStatus {
 const CHECKING: ApiStatus = { status: "unavailable", text: "Checking…", state: "None" };
 
 /**
- * @namespace ui5.chrome.ai.demo.controller
+ * @alias ui5.chrome.ai.demo.controller.Help
  */
 export default class HelpController extends BaseController {
 	private _helpModel!: JSONModel;

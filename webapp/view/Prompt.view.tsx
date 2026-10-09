@@ -1,5 +1,4 @@
 import View from "sap/ui/core/mvc/View";
-import Controller from "sap/ui/core/mvc/Controller";
 import Control from "sap/ui/core/Control";
 import Page from "sap/m/Page";
 import Button from "sap/m/Button";
@@ -21,20 +20,15 @@ import { If } from "ui5/community/jsx/runtime/runtime/runtime";
 import PromptController from "../controller/Prompt.controller";
 
 /**
- * @namespace ui5.chrome.ai.demo.view
+ * @alias ui5.chrome.ai.demo.view.Prompt
  */
 class Prompt extends View {
-	constructor() {
-		super();
-		(this as unknown as { controllerName: string }).controllerName = "ui5.chrome.ai.demo.controller.Prompt";
-	}
-
 	getAutoPrefixId(): boolean {
 		return true;
 	}
 
 	getControllerModuleName(): string {
-		return "ui5.chrome.ai.demo.controller.Prompt";
+		return "ui5/chrome/ai/demo/controller/Prompt";
 	}
 
 	createContent(): Control | Control[] | Promise<Control | Control[]> {

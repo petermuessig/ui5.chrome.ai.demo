@@ -8,7 +8,7 @@ import Router from "sap/ui/core/routing/Router";
 import History from "sap/ui/core/routing/History";
 
 /**
- * @namespace ui5.chrome.ai.demo.controller
+ * @alias ui5.chrome.ai.demo.controller.BaseController
  */
 export default abstract class BaseController extends Controller {
 	/**

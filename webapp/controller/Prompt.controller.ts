@@ -7,7 +7,7 @@ import Button from "sap/m/Button";
 import VBox from "sap/m/VBox";
 import Label from "sap/m/Label";
 import TextArea from "sap/m/TextArea";
-import Slider from "sap/m/Slider";
+import Slider, { Slider$LiveChangeEvent } from "sap/m/Slider";
 import ScrollContainer from "sap/m/ScrollContainer";
 import HTML from "sap/ui/core/HTML";
 import { checkLanguageModelAvailability, makeMonitor } from "../model/ai";
@@ -61,7 +61,7 @@ const followUp = await session.prompt("Explain it to a 5-year-old");
 `;
 
 /**
- * @namespace ui5.chrome.ai.demo.controller
+ * @alias ui5.chrome.ai.demo.controller.Prompt
  */
 export default class PromptController extends BaseController {
 	private _session: LanguageModel | null = null;
@@ -489,7 +489,7 @@ export default class PromptController extends BaseController {
 			min: 0,
 			max: state.maxTemperature,
 			step: 0.1,
-			liveChange: (e: { getParameter(p: string): number }) => {
+			liveChange: (e: Slider$LiveChangeEvent) => {
 				const v = e.getParameter("value");
 				tempLabel.setText(`Temperature: ${v.toFixed(1)}`);
 			}
@@ -501,7 +501,7 @@ export default class PromptController extends BaseController {
 			min: 1,
 			max: state.maxTopK,
 			step: 1,
-			liveChange: (e: { getParameter(p: string): number }) => {
+			liveChange: (e: Slider$LiveChangeEvent) => {
 				const v = e.getParameter("value");
 				topKLabel.setText(`Top-K: ${v}`);
 			}

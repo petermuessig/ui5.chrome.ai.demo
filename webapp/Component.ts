@@ -3,7 +3,7 @@ import models from "./model/models";
 import Device from "sap/ui/Device";
 
 /**
- * @namespace ui5.chrome.ai.demo
+ * @alias ui5.chrome.ai.demo.Component
  */
 export default class Component extends UIComponent {
 	public static metadata = {

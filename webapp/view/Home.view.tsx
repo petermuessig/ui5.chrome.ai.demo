@@ -1,5 +1,4 @@
 import View from "sap/ui/core/mvc/View";
-import Controller from "sap/ui/core/mvc/Controller";
 import Control from "sap/ui/core/Control";
 import Page from "sap/m/Page";
 import Button from "sap/m/Button";
@@ -10,23 +9,18 @@ import TileContent from "sap/m/TileContent";
 import NumericContent from "sap/m/NumericContent";
 import Text from "sap/m/Text";
 import Title from "sap/m/Title";
-import HomeController from "../controller/Home.controller";
+import type HomeController from "../controller/Home.controller";
 
 /**
- * @namespace ui5.chrome.ai.demo.view
+ * @alias ui5.chrome.ai.demo.view.Home
  */
 class Home extends View {
-	constructor() {
-		super();
-		(this as unknown as { controllerName: string }).controllerName = "ui5.chrome.ai.demo.controller.Home";
-	}
-
 	getAutoPrefixId(): boolean {
 		return true;
 	}
 
 	getControllerModuleName(): string {
-		return "ui5.chrome.ai.demo.controller.Home";
+		return "ui5/chrome/ai/demo/controller/Home";
 	}
 
 	createContent(): Control | Control[] | Promise<Control | Control[]> {

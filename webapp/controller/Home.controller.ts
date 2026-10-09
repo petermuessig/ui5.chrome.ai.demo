@@ -1,7 +1,7 @@
 import BaseController from "./BaseController";
 
 /**
- * @namespace ui5.chrome.ai.demo.controller
+ * @alias ui5.chrome.ai.demo.controller.Home
  */
 export default class HomeController extends BaseController {
 	public onInit(): void {

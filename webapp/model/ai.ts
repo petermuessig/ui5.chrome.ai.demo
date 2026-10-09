@@ -2,7 +2,6 @@
  * Shared Chrome Built-in AI helper utilities.
  * Centralises feature detection, availability checking, and the download-progress monitor adapter.
  *
- * @namespace ui5.chrome.ai.demo.model
  */
 
 // ─── Feature detection ───────────────────────────────────────────────────────
