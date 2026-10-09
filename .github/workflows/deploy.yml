@@ -1,0 +1,45 @@
+name: Build & Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to push to gh-pages branch
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Prepare Pages content
+        run: |
+          # Use index-cdn.html as the root entry point (loads OpenUI5 from CDN)
+          cp dist/index-cdn.html dist/index.html
+          # Prevent Jekyll from processing the files
+          touch dist/.nojekyll
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          commit_message: "ci: deploy ${{ github.sha }}"
+          force_orphan: false
