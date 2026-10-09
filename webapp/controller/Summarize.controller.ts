@@ -49,7 +49,7 @@ for await (const chunk of stream) {
 `;
 
 /**
- * @alias ui5.chrome.ai.demo.controller.SummarizeController
+ * @alias ui5.chrome.ai.demo.controller.Summarize
  */
 export default class SummarizeController extends BaseController {
 	private _summarizer: Summarizer | null = null;

@@ -11,9 +11,6 @@ import Text from "sap/m/Text";
 import Title from "sap/m/Title";
 import type HomeController from "../controller/Home.controller";
 
-/**
- * @alias ui5.chrome.ai.demo.view.Home
- */
 class Home extends View {
 	getAutoPrefixId(): boolean {
 		return true;

@@ -54,7 +54,7 @@ console.log(result); // "Hello world"
 `;
 
 /**
- * @alias ui5.chrome.ai.demo.controller.TranslateController
+ * @alias ui5.chrome.ai.demo.controller.Translate
  */
 export default class TranslateController extends BaseController {
 	private _detector: LanguageDetector | null = null;

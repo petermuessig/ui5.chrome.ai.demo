@@ -9,9 +9,6 @@ import ObjectStatus from "sap/m/ObjectStatus";
 import Link from "sap/m/Link";
 import HelpController from "../controller/Help.controller";
 
-/**
- * @alias ui5.chrome.ai.demo.view.Help
- */
 class Help extends View {
 	getAutoPrefixId(): boolean {
 		return true;
