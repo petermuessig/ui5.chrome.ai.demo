@@ -16,9 +16,6 @@ import CodeEditor from "sap/ui/codeeditor/CodeEditor";
 import { If } from "ui5/community/jsx/runtime/runtime/runtime";
 import type TranslateController from "../controller/Translate.controller";
 
-/**
- * @alias ui5.chrome.ai.demo.view.Translate
- */
 class Translate extends View {
 	getAutoPrefixId(): boolean {
 		return true;

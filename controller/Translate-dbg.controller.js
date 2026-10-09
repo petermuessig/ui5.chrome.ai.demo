@@ -28,9 +28,9 @@ console.log(result); // "Hello world"
 `;
 
   /**
-   * @alias ui5.chrome.ai.demo.controller.TranslateController
+   * @alias ui5.chrome.ai.demo.controller.Translate
    */
-  const TranslateController = BaseController.extend("ui5.chrome.ai.demo.controller.TranslateController", {
+  const TranslateController = BaseController.extend("ui5.chrome.ai.demo.controller.Translate", {
     constructor: function constructor() {
       BaseController.prototype.constructor.apply(this, arguments);
       this._detector = null;

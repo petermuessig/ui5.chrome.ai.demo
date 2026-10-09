@@ -26,9 +26,9 @@ for await (const chunk of stream) {
 `;
 
   /**
-   * @alias ui5.chrome.ai.demo.controller.SummarizeController
+   * @alias ui5.chrome.ai.demo.controller.Summarize
    */
-  const SummarizeController = BaseController.extend("ui5.chrome.ai.demo.controller.SummarizeController", {
+  const SummarizeController = BaseController.extend("ui5.chrome.ai.demo.controller.Summarize", {
     constructor: function constructor() {
       BaseController.prototype.constructor.apply(this, arguments);
       this._summarizer = null;

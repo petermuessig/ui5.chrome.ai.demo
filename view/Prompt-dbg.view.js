@@ -4,17 +4,14 @@ sap.ui.define(["sap/ui/core/mvc/View", "sap/m/Page", "sap/m/Button", "sap/m/VBox
   const _jsx = __ui5_community_jsx_runtime_jsx_runtime["jsx"];
   const _jsxs = __ui5_community_jsx_runtime_jsx_runtime["jsxs"];
   const If = __ui5_community_jsx_runtime_runtime_runtime["If"];
-  /**
-   * @alias ui5.chrome.ai.demo.view.Prompt
-   */
-  const Prompt = View.extend("ui5.chrome.ai.demo.view.Prompt", {
-    getAutoPrefixId: function _getAutoPrefixId() {
+  class Prompt extends View {
+    getAutoPrefixId() {
       return true;
-    },
-    getControllerModuleName: function _getControllerModuleName() {
+    }
+    getControllerModuleName() {
       return "ui5/chrome/ai/demo/controller/Prompt";
-    },
-    createContent: function _createContent() {
+    }
+    createContent() {
       const ctrl = this.getController();
       return _jsxs(Page, {
         id: "promptPage",
@@ -175,7 +172,7 @@ sap.ui.define(["sap/ui/core/mvc/View", "sap/m/Page", "sap/m/Button", "sap/m/VBox
         })]
       });
     }
-  });
+  }
   return Prompt;
 });
 //# sourceMappingURL=Prompt-dbg.view.js.map

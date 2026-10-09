@@ -3,17 +3,14 @@ sap.ui.define(["sap/ui/core/mvc/View", "sap/m/Page", "sap/m/Button", "sap/m/VBox
 
   const _jsx = __ui5_community_jsx_runtime_jsx_runtime["jsx"];
   const _jsxs = __ui5_community_jsx_runtime_jsx_runtime["jsxs"];
-  /**
-   * @alias ui5.chrome.ai.demo.view.Help
-   */
-  const Help = View.extend("ui5.chrome.ai.demo.view.Help", {
-    getAutoPrefixId: function _getAutoPrefixId() {
+  class Help extends View {
+    getAutoPrefixId() {
       return true;
-    },
-    getControllerModuleName: function _getControllerModuleName() {
+    }
+    getControllerModuleName() {
       return "ui5/chrome/ai/demo/controller/Help";
-    },
-    createContent: function _createContent() {
+    }
+    createContent() {
       const ctrl = this.getController();
       return _jsx(Page, {
         id: "helpPage",
@@ -79,7 +76,7 @@ sap.ui.define(["sap/ui/core/mvc/View", "sap/m/Page", "sap/m/Button", "sap/m/VBox
         })
       });
     }
-  });
+  }
   return Help;
 });
 //# sourceMappingURL=Help-dbg.view.js.map

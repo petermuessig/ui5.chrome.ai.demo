@@ -12,9 +12,6 @@ import CodeEditor from "sap/ui/codeeditor/CodeEditor";
 import { If } from "ui5/community/jsx/runtime/runtime/runtime";
 import SummarizeController from "../controller/Summarize.controller";
 
-/**
- * @alias ui5.chrome.ai.demo.view.Summarize
- */
 class Summarize extends View {
 	getAutoPrefixId(): boolean {
 		return true;

@@ -19,9 +19,6 @@ import CodeEditor from "sap/ui/codeeditor/CodeEditor";
 import { If } from "ui5/community/jsx/runtime/runtime/runtime";
 import PromptController from "../controller/Prompt.controller";
 
-/**
- * @alias ui5.chrome.ai.demo.view.Prompt
- */
 class Prompt extends View {
 	getAutoPrefixId(): boolean {
 		return true;
